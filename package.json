@@ -1,0 +1,38 @@
+{
+  "name": "ploxora",
+  "version": "1.0.0",
+  "description": "Best VPS Management dashboard....",
+  "keywords": [
+    "VPS"
+  ],
+  "homepage": "https://github.com/HydrenFOSS/Ploxora#readme",
+  "bugs": {
+    "url": "https://github.com/HydrenFOSS/Ploxora/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HydrenFOSS/Ploxora.git"
+  },
+  "license": "ISC",
+  "author": "ma4z-dev",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "keyv": "4.5.4",
+    "@keyv/sqlite": "^3.6.7",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}

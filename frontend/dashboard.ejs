@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen text-white relative">
+
+  <!-- Background gradients -->
+  <div class="fixed inset-0 flex flex-col -z-10">
+    <!-- Top half -->
+    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
+    <!-- Bottom half -->
+    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="bg-[#111111] p-4 flex justify-between items-center relative z-10 rounded-b-2xl shadow-lg">
+    <h1 class="text-2xl font-bold"><%= name %> Dashboard</h1>
+    <div class="flex items-center space-x-4">
+      <span><%= user.username %></span>
+      <img src="<%= user.profilePicture %>" class="w-8 h-8 rounded-full" alt="Avatar">
+      <a href="/logout" class="bg-[#ff4d4d] px-3 py-1 rounded hover:bg-[#e04444] transition">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="p-6 relative z-10">
+    <h2 class="text-xl font-semibold mb-4">Your Servers</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-[#1a1a1a] rounded-lg overflow-hidden shadow-md">
+        <thead>
+          <tr class="bg-[#222222] text-left">
+            <th class="px-6 py-3">Server Name</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">SSH</th>
+            <th class="px-6 py-3">Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (user.servers && user.servers.length > 0) { %>
+            <% user.servers.forEach((server, index) => { %>
+              <tr class="<%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#222222]' %>">
+                <td class="px-6 py-3"><%= server.name || "Empty" %></td>
+                <td class="px-6 py-3"><%= server.status || "Offline" %></td>
+                <td class="px-6 py-3"><%= server.ssh || "Unknown (Contact Support)" %></td>
+                <td class="px-6 py-3"><%= server.createdAt || "Now" %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" class="text-center px-6 py-4 text-[#bbbbbb]">No servers yet.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>

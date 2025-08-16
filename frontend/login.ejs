@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* subtle glow for hover */
+    .discord-btn:hover {
+      box-shadow: 0 0 20px rgba(88, 101, 242, 0.6);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen relative overflow-hidden">
+
+<div class="absolute inset-0 flex flex-col">
+  <!-- Top half with gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a] backdrop-blur-2xl"></div>
+  
+  <!-- Bottom half with gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a] backdrop-blur-2xl"></div>
+</div>
+
+  <!-- login box -->
+  <div class="relative bg-[#111111]/90 p-12 rounded-3xl shadow-2xl w-96 text-center">
+    <h1 class="text-white text-4xl font-bold mb-4">Welcome Back!</h1>
+    <p class="text-gray-400 mb-8">Sign in with Discord to continue to <%= name %></p>
+   <% if (error) { %>
+    <p id="error-msg" class="text-red-500 mb-4 font-semibold"><%= error %></p>
+  <% } %>
+
+    <a href="/auth/discord" 
+       class="discord-btn flex items-center justify-center bg-white font-semibold rounded-2xl px-8 py-3 transition duration-300">
+       <img src="https://cdn-icons-png.flaticon.com/512/2111/2111370.png" 
+            alt="Discord" class="w-6 h-6 mr-3">
+       Login with Discord
+    </a>
+  </div>
+</body>
+</html>
