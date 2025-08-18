@@ -3,8 +3,11 @@ const fs = require("fs");
 const express = require("express");
 const app = express();
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 // Set up EJS
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/frontend"));
 
@@ -13,7 +16,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Powered-By", "Hydren || Ploxora");
   next();
 });
-
+app.use(cookieParser());
 // Load all route files from ./backend (only .js files)
 const routeFiles = fs.readdirSync("./backend").filter(file => file.endsWith(".js"));
 

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Nodes | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen text-white relative flex flex-col">
+
+  <!-- Background gradients -->
+  <div class="fixed inset-0 flex flex-col -z-10">
+    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
+    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
+  </div>
+
+  <!-- Navbar -->
+  <%- include('../components/nav.ejs') %>
+
+  <div class="flex flex-1 relative z-10">
+    <%- include('../components/sidebar.ejs') %>
+
+    <!-- Main content -->
+    <main class="flex-1 p-6 space-y-8">
+
+      <!-- Nodes Table -->
+<section>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">Dashboard Nodes</h2>
+    <button onclick="openCNModal()" 
+       class="bg-blue-600 hover:bg-blue-500 transition px-4 py-2 rounded-xl text-white font-medium shadow-lg">
+      + Create Node
+  </button>
+  </div>
+
+  <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
+    <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
+      <thead>
+        <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
+          <th class="px-6 py-3">Node Name</th>
+          <th class="px-6 py-3">Address</th>
+          <th class="px-6 py-3">Port</th>
+          <th class="px-6 py-3">Location</th>
+          <th class="px-6 py-3">Initializtion Command</th>
+          <th class="px-6 py-3">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (nodes && nodes.length > 0) { %>
+          <% nodes.forEach((node, index) => { %>
+            <tr class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+              <td class="px-6 py-3 font-medium text-gray-200"><%= node.name || "Unnamed Node" %></td>
+              <td class="px-6 py-3 text-gray-300"><%= node.address || "N/A" %></td>
+              <td class="px-6 py-3 text-gray-300"><%= node.port || "N/A" %></td>
+              <td class="px-6 py-3 text-gray-300"><%= node.location || "Unknown" %></td>
+            <td onclick="openInitComd('<%= node.id %>')" 
+    class="px-6 py-3 text-blue-400 hover:underline cursor-pointer">
+  Init Command
+</td>
+              <td class="px-6 py-3">
+                <% if (node.status === "Online") { %>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-600 text-white">Online</span>
+                <% } else { %>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-600 text-white">Offline</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" class="text-center px-6 py-6 text-gray-500 italic">
+              No nodes yet.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<!-- Init Command Modal -->
+<div id="initCommandModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-[#111] rounded-xl shadow-lg p-6 w-full max-w-lg border border-[#333]">
+    <h2 class="text-xl font-semibold text-white mb-4">Initialization Command</h2>
+    <p class="text-gray-400 mb-3">Run this command on your node server:</p>
+    
+    <pre id="initCommandText" 
+         class="bg-[#222] p-3 rounded-lg text-green-400 text-sm overflow-x-auto"></pre>
+
+    <div class="flex justify-end space-x-3 mt-5">
+      <button onclick="closeInitComd()" 
+        class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg">
+        Close
+      </button>
+      <button onclick="copyInitComd()" 
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
+        Copy
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+    function closeInitComd() {
+  document.getElementById("initCommandModal").classList.add("hidden");
+}
+
+function copyInitComd() {
+  const text = document.getElementById("initCommandText").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Copied to clipboard!");
+  });
+}
+async function openInitComd(nodeId) {
+  try {
+    const res = await fetch(`/admin/node/${nodeId}`);
+    const data = await res.json();
+
+    if (!data.success) return alert("Failed to fetch node info");
+
+    const node = data.node;
+    const fullUrl = `${window.location.protocol}//${window.location.host}`;
+
+    const cmd = `npm run initialize -- --key ${node.token} --ploxora ${fullUrl}`;
+
+    document.getElementById("initCommandText").textContent = cmd;
+    document.getElementById("initCommandModal").classList.remove("hidden");
+  } catch (err) {
+    console.error("Init command error:", err);
+    alert("Could not load init command:", err);
+  }
+}
+
+function closeInitComd() {
+  document.getElementById("initCommandModal").classList.add("hidden");
+}
+</script>
+
+<!-- Modal -->
+<div id="createNodeModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+  <div class="bg-[#1a1a1a] p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a]">
+    <h2 class="text-xl font-semibold text-gray-200 mb-4">Create New Node</h2>
+
+    <form action="/admin/nodes/create" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-gray-300 mb-1">Node Name</label>
+        <input type="text" name="name" required 
+          class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+      </div>
+
+      <div>
+        <label class="block text-gray-300 mb-1">Address</label>
+        <input type="text" name="address" required 
+          class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+      </div>
+
+      <div>
+        <label class="block text-gray-300 mb-1">Port</label>
+        <input type="number" name="port" required 
+          class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4">
+        <button type="button" onclick="closeCNModal()" 
+          class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white transition">
+          Cancel
+        </button>
+        <button type="submit" 
+          class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-md">
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+    </main>
+  </div>
+<script>
+  function openCNModal() {
+    document.getElementById("createNodeModal").classList.remove("hidden");
+  }
+  function closeCNModal() {
+    document.getElementById("createNodeModal").classList.add("hidden");
+  }
+</script>
+  <%- include('../components/footer.ejs') %>
+
+</body>
+</html>

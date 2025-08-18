@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const Keyv = require("keyv");
 require("dotenv").config();
 
-// Keyv instances (persisted in SQLite by default, but no tables needed)
+const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
 

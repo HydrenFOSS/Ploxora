@@ -6,35 +6,53 @@
   <title>Dashboard | <%= name %></title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen text-white relative">
+<body class="min-h-screen text-white relative flex flex-col">
 
   <!-- Background gradients -->
   <div class="fixed inset-0 flex flex-col -z-10">
-    <!-- Top half -->
     <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <!-- Bottom half -->
     <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
   </div>
 
   <!-- Navbar -->
-  <nav class="bg-[#111111] p-4 flex justify-between items-center relative z-10 rounded-b-2xl shadow-lg">
-    <h1 class="text-2xl font-bold"><%= name %> Dashboard</h1>
-    <div class="flex items-center space-x-4">
-      <span><%= user.username %></span>
-      <img src="<%= user.profilePicture %>" class="w-8 h-8 rounded-full" alt="Avatar">
-      <a href="/logout" class="bg-[#ff4d4d] px-3 py-1 rounded hover:bg-[#e04444] transition">Logout</a>
-    </div>
-  </nav>
+<%- include('components/nav.ejs') %>
 
-  <!-- Main content -->
-  <div class="p-6 relative z-10">
-    <h2 class="text-xl font-semibold mb-4">Your Servers</h2>
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-[#1a1a1a] rounded-lg overflow-hidden shadow-md">
+  <div class="flex flex-1 relative z-10">
+
+   <%- include('components/sidebar.ejs') %>
+<!-- Main content -->
+<main class="flex-1 p-6 space-y-8">
+
+  <!-- Greeting -->
+  <div class="bg-gradient-to-r from-[#1a1a1a] to-[#111111] p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+    <h1 class="text-3xl font-bold text-gray-100">Welcome back, <%= user.username %> 👋</h1>
+    <p class="text-gray-400 mt-2">Here’s a quick overview of your account and servers.</p>
+  </div>
+
+  <!-- Overview cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <h3 class="text-sm text-gray-400 mb-2">Total Servers</h3>
+      <p class="text-2xl font-bold text-gray-200"><%= user.servers?.length || 0 %></p>
+    </div>
+    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <h3 class="text-sm text-gray-400 mb-2">Account Type</h3>
+      <p class="text-2xl font-bold text-gray-200"><%= user.admin ? "Admin" : "User" %></p>
+    </div>
+    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <h3 class="text-sm text-gray-400 mb-2">Total Nodes</h3>
+      <p class="text-2xl font-bold text-gray-200"><%= nodes %></p>
+    </div>
+  </div>
+
+  <!-- Servers Table -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4 text-gray-200 tracking-wide">Your Servers</h2>
+    <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
         <thead>
-          <tr class="bg-[#222222] text-left">
+          <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
             <th class="px-6 py-3">Server Name</th>
-            <th class="px-6 py-3">Status</th>
             <th class="px-6 py-3">SSH</th>
             <th class="px-6 py-3">Created At</th>
           </tr>
@@ -42,22 +60,31 @@
         <tbody>
           <% if (user.servers && user.servers.length > 0) { %>
             <% user.servers.forEach((server, index) => { %>
-              <tr class="<%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#222222]' %>">
-                <td class="px-6 py-3"><%= server.name || "Empty" %></td>
-                <td class="px-6 py-3"><%= server.status || "Offline" %></td>
-                <td class="px-6 py-3"><%= server.ssh || "Unknown (Contact Support)" %></td>
-                <td class="px-6 py-3"><%= server.createdAt || "Now" %></td>
+              <tr class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+                <td class="px-6 py-3 font-medium text-gray-200"><%= server.name || "Empty" %></td>
+                <td class="px-6 py-3 text-gray-300">  <%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %>
+</td>
+                <td class="px-6 py-3 text-gray-400"><%= server.createdAt || "Now" %></td>
               </tr>
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="5" class="text-center px-6 py-4 text-[#bbbbbb]">No servers yet.</td>
+              <td colspan="4" class="text-center px-6 py-6 text-gray-500 italic">
+                No servers yet.
+              </td>
             </tr>
           <% } %>
         </tbody>
       </table>
     </div>
+  </section>
+
+</main>
+
+
   </div>
+
+ <%- include('components/footer.ejs') %>
 
 </body>
 </html>

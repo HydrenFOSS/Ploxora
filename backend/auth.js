@@ -11,6 +11,7 @@ const router = express.Router();
 
 // Keyv instances for users and sessions
 const SESSION_TTL = 1000 * 60 * 60 * 24; // 24h TTL
+const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv({ uri: process.env.SESSIONS_DB || 'sqlite://sessions.sqlite', ttl: SESSION_TTL });
 
@@ -97,7 +98,10 @@ router.get("/", async (req, res) => {
 router.get("/dashboard", async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
-
+  let count = 0;
+    for await (const _ of nodes.iterator()) {
+      count++;
+    }
   const userId = await sessions.get(token);
   if (!userId) {
     res.clearCookie("SESSION-COOKIE");
@@ -111,7 +115,7 @@ router.get("/dashboard", async (req, res) => {
   }
 
   const name = process.env.APP_NAME;
-  res.render('dashboard', { user, name });
+  res.render('dashboard', { user, name, nodes: count });
 });
 
 // Discord auth routes
