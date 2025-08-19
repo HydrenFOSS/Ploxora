@@ -14,12 +14,11 @@ const adminEmails = (process.env.ADMIN_USERS || "")
   .split(",")
   .map(e => e.trim().toLowerCase());
 
-function requireAdmin(req, res, next) {
-  if (!req.user || !req.user.email) {
-    return res.redirect("/?err=NO-USER");
-  }
-
-  const isAdmin = adminEmails.includes(req.user.email.toLowerCase());
+async function requireAdmin(req, res, next) {
+  const token = req.cookies["SESSION-COOKIE"];
+  const userId = await sessions.get(token);
+  const user = await users.get(userId);
+  const isAdmin = adminEmails.includes(user.email.toLowerCase());
   if (!isAdmin) {
     return res.status(403).send("Access denied: Admins only");
   }
