@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/HydrenFOSS/Ploxora.git"
   },
-  "license": "ISC",
+  "license": "HydDSMS",
   "author": "ma4z-dev",
   "type": "commonjs",
   "main": "index.js",
