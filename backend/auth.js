@@ -6,7 +6,8 @@ const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const Keyv = require("keyv");
 require("dotenv").config();
-
+const Catloggr = require("cat-loggr");
+const logger = new Catloggr({ prefix: "Ploxora" });
 const router = express.Router();
 
 // Keyv instances for users and sessions
@@ -15,8 +16,8 @@ const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv({ uri: process.env.SESSIONS_DB || 'sqlite://sessions.sqlite', ttl: SESSION_TTL });
 
-users.on('error', err => console.error('Users DB Error', err));
-sessions.on('error', err => console.error('Sessions DB Error', err));
+users.on('error', err => logger.error('Users DB Error', err));
+sessions.on('error', err => logger.error('Sessions DB Error', err));
 
 // Prepare admin emails array
 const adminEmails = (process.env.ADMIN_USERS || "").split(",").map(e => e.trim().toLowerCase());
@@ -141,7 +142,7 @@ router.get("/logout", async (req, res) => {
     req.logout(() => {});
     res.redirect("/");
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).send("Error logging out " + err);
   }
 });

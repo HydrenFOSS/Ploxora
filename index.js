@@ -4,7 +4,8 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const cookieParser = require("cookie-parser");
-
+const Catloggr = require("cat-loggr");
+const logger = new Catloggr({ prefix: "Ploxora" });
 // Set up EJS
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -33,6 +34,15 @@ app.use((req, res) => {
   });
 });
 
-// Start server
+const asciiart = `
+  _____  _                          
+ |  __ \\| |                         
+ | |__) | | _____  _____  _ __ __ _ 
+ |  ___/| |/ _ \\ \\/ / _ \\| '__/ _\` |
+ | |    | | (_) >  < (_) | | | (_| |
+ |_|    |_|\\___/_/\\_\\___/|_|  \\__,_|
+`;
+
 const PORT = process.env.APP_PORT || 3000;
-app.listen(PORT, () => console.log(`Ploxora has been started on ${PORT}!`));
+console.log(asciiart)
+app.listen(PORT, () => logger.init(`Ploxora has been started on ${PORT}!`));

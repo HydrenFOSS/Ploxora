@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Images | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen text-white relative flex flex-col">
+
+  <!-- Background gradients -->
+  <div class="fixed inset-0 flex flex-col -z-10">
+    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
+    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
+  </div>
+
+  <!-- Navbar -->
+  <%- include('../components/nav.ejs') %>
+
+  <!-- Page wrapper -->
+  <div class="flex flex-1 relative z-10">
+    <%- include('../components/sidebar.ejs') %>
+
+    <!-- Main content -->
+    <main class="flex-1 p-6 space-y-8">
+
+      <!-- Images Table -->
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">Dashboard Images</h2>
+          <button onclick="openCIModal()"
+            class="bg-blue-600 hover:bg-blue-500 transition px-4 py-2 rounded-xl text-white font-medium shadow-lg">
+            + Add Image
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
+          <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
+            <thead>
+              <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
+                <th class="px-6 py-3">Image Name</th>
+                <th class="px-6 py-3">Version</th>
+                <th class="px-6 py-3">JSON (RAW)</th>
+                <th class="px-6 py-3">Created</th>
+                <th class="px-6 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (images && images.length > 0) { %>
+                <% images.forEach((img, index) => { %>
+                  <tr
+                    class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+                    <td class="px-6 py-3 font-medium text-gray-200"><%= img.name %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= img.version %></td>
+                    <td class="px-6 py-3 text-gray-300 truncate max-w-xs">
+                      <a href="<%= img.url %>" target="_blank"
+                        class="text-blue-400 hover:underline"><%= img.url %></a>
+                    </td>
+                    <td class="px-6 py-3 text-gray-400"><%= new Date(img.createdAt).toLocaleString() %></td>
+                    <td class="px-6 py-3 flex gap-2">
+                      <form action="/admin/images/delete/<%= img.id %>" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete this image?');">
+                        <button type="submit"
+                          class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" class="text-center px-6 py-6 text-gray-500 italic">
+                    No images yet.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Create Image Modal -->
+      <div id="createImageModal"
+        class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+        <div class="bg-[#1a1a1a] p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a]">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">Add New Image</h2>
+          <form action="/admin/images/create" method="POST" class="space-y-4">
+            <div>
+              <label class="block text-gray-300 mb-1">JSON (RAW) URL</label>
+              <input type="url" name="url" required
+                placeholder="https://example.com/docker-image.json"
+                class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4">
+              <button type="button" onclick="closeCIModal()"
+                class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white transition">
+                Cancel
+              </button>
+              <button type="submit"
+                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-md">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer sticks at bottom -->
+  <footer class="mt-auto relative z-10">
+    <%- include('../components/footer.ejs') %>
+  </footer>
+
+  <script>
+    function openCIModal() {
+      document.getElementById("createImageModal").classList.remove("hidden");
+    }
+    function closeCIModal() {
+      document.getElementById("createImageModal").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
