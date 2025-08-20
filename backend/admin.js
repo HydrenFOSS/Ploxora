@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const Catloggr = require("cat-loggr");
-const logger = new Catloggr({ prefix: "Ploxora" });
+const Logger = require("../utilities/logger");
+const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const Keyv = require("keyv");
 const net = require("net");
 const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
@@ -13,6 +13,24 @@ const crypto = require("crypto");
 const adminEmails = (process.env.ADMIN_USERS || "")
   .split(",")
   .map(e => e.trim().toLowerCase());
+
+function uuid() {
+  const bytes = crypto.randomBytes(16);
+
+  // UUID v4 layout
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; 
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; 
+
+  const hex = bytes.toString("hex");
+
+  return (
+    hex.slice(0, 8) + "-" +
+    hex.slice(8, 12) + "-" +
+    hex.slice(12, 16) + "-" +
+    hex.slice(16, 20) + "-" +
+    hex.slice(20)
+  );
+}
 
 async function requireAdmin(req, res, next) {
   const token = req.cookies["SESSION-COOKIE"];
@@ -69,22 +87,23 @@ async function ensureDefaultImage() {
       // Fetch JSON from default URL
       const url = "https://raw.githubusercontent.com/HydrenFOSS/PloxoraImages/refs/heads/main/default.json";
       const response = await fetch(url);
-      const jsonData = await response.json(); // <- fix here
+      const jsonData = await response.json();
 
-      // Add image to Keyv
-      const id = crypto.randomBytes(4).toString("hex");
+      // Add full response fields to Keyv
+      const id = uuid();
       const image = {
         id,
         name: jsonData.name || "Ubuntu:latest",
         version: jsonData.version || "latest",
-        url: url,
+        image: jsonData.image || "",          // 👈 keep actual docker image string
         description: jsonData.description || "SystemCTL/SSH Tmate",
         author: jsonData.author || "HydrenFOSS",
         createdAt: new Date().toISOString(),
+        sourceUrl: url                        // optional: keep track of where it came from
       };
 
       await images.set(id, image);
-      logger.info("Default image added successfully.");
+      logger.info("Default image added successfully:", image);
     } else {
       logger.info("Required image exists, no action needed.");
     }
@@ -150,6 +169,47 @@ router.get("/admin/node/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Error loading node details" });
   }
 });
+router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
+  try {
+    const allNodes = [];
+    for await (const [key, value] of nodes.iterator()) {
+      let status = "Offline";
+
+      try {
+        const response = await fetch(
+          `http://${value.address}:${value.port}/checkdockerrunning?x-verification-key=${value.token}`,
+          { timeout: 3000 }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.docker === "running") {
+            status = "Online";
+          }
+        }
+      } catch (err) {
+        logger.error(`Health check failed for node ${key}: ${err.message}`);
+      }
+
+      // Update DB if status changed
+      if (value.status !== status) {
+        value.status = status;
+        await nodes.set(key, value);
+      }
+
+      allNodes.push({ id: key, ...value });
+    }
+
+    res.json({
+      success: true,
+      nodes: allNodes,
+    });
+  } catch (err) {
+    logger.error("Error loading node details:", err);
+    res.status(500).json({ error: "Error loading nodes details" });
+  }
+});
+
 // ---------- Admin Nodes Page ----------
 router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
   try {
@@ -187,7 +247,8 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     res.render("admin/nodes", {
       name: process.env.APP_NAME,
       user: req.user,
-      nodes: allNodes
+      nodes: allNodes,
+      req,
     });
   } catch (err) {
     logger.error("Error loading nodes:", err);
@@ -206,7 +267,12 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 
     const allUsers = [];
     for await (const [key, value] of users.iterator()) {
-      allUsers.push({ id: key, ...value });
+     allUsers.push({ id: key, ...value, banned: value.banned || false });
+    }
+    
+    const allImages = [];
+    for await (const [key, value] of images.iterator()) {
+      allImages.push({ id: key, ...value });
     }
     const allNodes = [];
     for await (const [key, value] of nodes.iterator()) {
@@ -217,7 +283,9 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
       user: req.user,
       servers: allServers,
       users: allUsers,
-      nodes: allNodes
+      nodes: allNodes,
+      req,
+      images: allImages
     });
   } catch (err) {
     res.status(500).send("Error loading servers");
@@ -225,10 +293,13 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 });
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, gb, cores, userId, nodeId } = req.body;
+    const { name, gb, cores, userId, nodeId, imageId } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).send("Node not found");
+    
+    const image = await images.get(imageId);
+    if (!image) return res.status(404).send("Image not found");
 
     const user = await users.get(userId);
     if (!user) return res.status(404).send("User not found");
@@ -254,7 +325,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     }
 
     const server = {
-      id: crypto.randomBytes(4).toString("hex"),
+      id: uuid(),
       name,
       ssh: result.ssh,
       containerId: result.containerId,
@@ -262,6 +333,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
       status: "online",
       user: userId,
       node: nodeId,
+      image: imageId
     };
 
     // Save in user
@@ -404,7 +476,8 @@ router.get("/admin/images", requireLogin, requireAdmin, async (req, res) => {
     res.render("admin/images", {
       name: process.env.APP_NAME,
       user: req.user,
-      images: allImages
+      images: allImages,
+      req,
     });
   } catch (err) {
     logger.error("Error loading images:", err);
@@ -428,7 +501,7 @@ router.post("/admin/images/create", requireLogin, requireAdmin, async (req, res)
       return res.status(400).send("JSON missing required fields (image, name, version)");
     }
 
-    const id = crypto.randomBytes(4).toString("hex");
+    const id = uuid();
     const imageEntry = {
       id,
       image,
@@ -458,4 +531,67 @@ router.post("/admin/images/delete/:id", requireLogin, requireAdmin, async (req, 
     res.status(500).send("Error deleting image");
   }
 });
+
+router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
+  try {
+    const allUsers = [];
+    for await (const [key, value] of users.iterator()) {
+      allUsers.push({ id: key, ...value, banned: value.banned || false });
+    }
+
+    res.render("admin/users", {
+      name: process.env.APP_NAME,
+      users: allUsers,
+      req,
+      user: req.user,
+    });
+  } catch (err) {
+    logger.error("Error fetching users:", err);
+    res.status(500).send("Error loading users");
+  }
+});
+router.post("/admin/users/ban/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await users.get(id);
+    if (!user) return res.status(404).send("User not found");
+
+    user.banned = true; // mark as banned
+    await users.set(id, user);
+
+    res.redirect("/admin/users?msg=USER_BANNED");
+  } catch (err) {
+    logger.error("Ban user error:", err);
+    res.status(500).send("Failed to ban user");
+  }
+});
+
+// POST /admin/users/unban/:id
+router.post("/admin/users/unban/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await users.get(id);
+    if (!user) return res.status(404).send("User not found");
+
+    user.banned = false; // remove ban
+    await users.set(id, user);
+
+    res.redirect("/admin/users?msg=USER_UNBANNED");
+  } catch (err) {
+    logger.error("Unban user error:", err);
+    res.status(500).send("Failed to unban user");
+  }
+});
+// POST /admin/users/delete/:id
+router.post("/admin/users/delete/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await users.delete(id);
+    res.redirect("/admin/users");
+  } catch (err) {
+    logger.error("Delete user error:", err);
+    res.status(500).send("Failed to delete user");
+  }
+});
+
 module.exports = router;

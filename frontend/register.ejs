@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen relative overflow-hidden">
+
+<div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a] backdrop-blur-2xl"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a] backdrop-blur-2xl"></div>
+</div>
+
+  <!-- Register box -->
+  <div class="relative bg-[#111111]/90 p-12 rounded-3xl shadow-2xl w-96 text-center">
+    <h1 class="text-white text-4xl font-bold mb-4">Create Account</h1>
+    <p class="text-gray-400 mb-8">Register to get started with <%= name %></p>
+    
+    <% if (error) { %>
+      <p id="error-msg" class="text-red-500 mb-4 font-semibold"><%= error %></p>
+    <% } %>
+
+    <!-- Register form -->
+    <form action="/register" method="POST" class="space-y-4 text-left">
+      <div>
+        <label for="username" class="block text-gray-300 text-sm mb-1">Username</label>
+        <input type="text" id="username" name="username" required
+          class="w-full px-4 py-2 rounded-xl bg-[#1a1a1a] border border-gray-700 text-white focus:outline-none focus:border-gray-400">
+      </div>
+
+      <div>
+        <label for="email" class="block text-gray-300 text-sm mb-1">Email</label>
+        <input type="email" id="email" name="email" required
+          class="w-full px-4 py-2 rounded-xl bg-[#1a1a1a] border border-gray-700 text-white focus:outline-none focus:border-gray-400">
+      </div>
+
+      <div>
+        <label for="password" class="block text-gray-300 text-sm mb-1">Password</label>
+        <input type="password" id="password" name="password" required
+          class="w-full px-4 py-2 rounded-xl bg-[#1a1a1a] border border-gray-700 text-white focus:outline-none focus:border-gray-400">
+      </div>
+
+      <button type="submit"
+        class="w-full bg-white text-black font-semibold rounded-xl py-3 hover:bg-gray-200 transition">
+        Register
+      </button>
+    </form>
+
+    <!-- Extra links -->
+    <p class="text-gray-400 text-sm mt-6">
+      Already have an account? 
+      <a href="/login" class="text-white font-semibold hover:underline">Login</a>
+    </p>
+  </div>
+</body>
+</html>

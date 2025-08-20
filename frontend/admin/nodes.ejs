@@ -35,7 +35,46 @@
                 + Create Node
               </button>
             </div>
-
+               <% if (req.query.msg === "USER_BANNED" || req.query.msg === "USER_UNBANNED" || req.query.msg === "SERVER_CREATED" || req.query.msg === "SERVER_DELETED" || req.query.msg === "NODE_DELETED" || req.query.msg === "NODE-CREATED" || req.query.msg === "IMAGE_CREATED" || req.query.msg === "IMAGE_DELETED") { %>
+               <div class="mb-4 p-4 rounded-lg flex items-start space-x-3 
+                  <%= req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED') ? 'bg-green-600 text-white' : 'bg-blue-600 text-white' %>">
+                  <!-- Icon -->
+                  <div class="flex-shrink-0 flex flex-col justify-center">
+                     <% if (req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED')) { %>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                     </svg>
+                     <% } else { %>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01" />
+                     </svg>
+                     <% } %>
+                  </div>
+                  <!-- Texts -->
+                  <div class="flex flex-col">
+                     <p class="font-semibold leading-tight">
+                        <% if (req.query.msg === "USER_BANNED") { %>User Banned<% } %>
+                        <% if (req.query.msg === "USER_UNBANNED") { %>User Unbanned<% } %>
+                        <% if (req.query.msg === "SERVER_CREATED") { %>Server Created<% } %>
+                        <% if (req.query.msg === "SERVER_DELETED") { %>Server Deleted<% } %>
+                        <% if (req.query.msg === "NODE-CREATED") { %>Node Created<% } %>
+                        <% if (req.query.msg === "NODE_DELETED") { %>Node Deleted<% } %>
+                        <% if (req.query.msg === "IMAGE_CREATED") { %>Image Created<% } %>
+                        <% if (req.query.msg === "IMAGE_DELETED") { %>Image Deleted<% } %>
+                     </p>
+                     <p class="text-sm leading-tight">
+                        <% if (req.query.msg === "USER_BANNED") { %>User was successfully banned<% } %>
+                        <% if (req.query.msg === "USER_UNBANNED") { %>User was successfully unbanned<% } %>
+                        <% if (req.query.msg === "SERVER_CREATED") { %>Server deployed successfully<% } %>
+                        <% if (req.query.msg === "SERVER_DELETED") { %>Server deleted successfully<% } %>
+                        <% if (req.query.msg === "NODE-CREATED") { %>Node added successfully<% } %>
+                        <% if (req.query.msg === "NODE_DELETED") { %>Node deleted successfully<% } %>
+                        <% if (req.query.msg === "IMAGE_CREATED") { %>Image added successfully<% } %>
+                        <% if (req.query.msg === "IMAGE_DELETED") { %>Image deleted successfully<% } %>
+                     </p>
+                  </div>
+               </div>
+               <% } %>
             <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
               <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
                 <thead>

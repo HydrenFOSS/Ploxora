@@ -3,12 +3,10 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const Keyv = require("keyv");
 require("dotenv").config();
-const Catloggr = require("cat-loggr");
-const logger = new Catloggr({ prefix: "Ploxora" });
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
+const Logger = require("../utilities/logger");
+const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
-
 
 async function requireLogin(req, res, next) {
   try {

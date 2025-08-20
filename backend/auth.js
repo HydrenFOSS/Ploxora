@@ -6,9 +6,10 @@ const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const Keyv = require("keyv");
 require("dotenv").config();
-const Catloggr = require("cat-loggr");
-const logger = new Catloggr({ prefix: "Ploxora" });
+const Logger = require("../utilities/logger");
+const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
 // Keyv instances for users and sessions
 const SESSION_TTL = 1000 * 60 * 60 * 24; // 24h TTL
@@ -22,7 +23,23 @@ sessions.on('error', err => logger.error('Sessions DB Error', err));
 // Prepare admin emails array
 const adminEmails = (process.env.ADMIN_USERS || "").split(",").map(e => e.trim().toLowerCase());
 
-// Passport Discord setup
+function uuid() {
+  const bytes = crypto.randomBytes(16);
+
+  // UUID v4 layout
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = bytes.toString("hex");
+
+  return (
+    hex.slice(0, 8) + "-" +
+    hex.slice(8, 12) + "-" +
+    hex.slice(12, 16) + "-" +
+    hex.slice(16, 20) + "-" +
+    hex.slice(20)
+  );
+}
 passport.use(
   new DiscordStrategy(
     {
@@ -35,21 +52,27 @@ passport.use(
       try {
         const { id, username, email, avatar } = profile;
 
+        const existingUser = await users.get(id);
+
         const isAdmin = email ? adminEmails.includes(email.toLowerCase()) : false;
 
         const userData = {
           id,
           username,
-          email: email || "",
-          profilePicture: avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png` : "",
+          email: email || existingUser?.email || "",
+          profilePicture: avatar
+            ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png`
+            : existingUser?.profilePicture
+            || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
           admin: isAdmin,
-          servers: {},
+          servers: existingUser?.servers || {},
         };
+
 
         await users.set(id, userData);
 
-        const token = crypto.randomBytes(32).toString("hex");
-        await sessions.set(token, id); // will auto-expire after TTL
+        const token = uuid();
+        await sessions.set(token, id);
 
         done(null, { id, token, username });
       } catch (err) {
@@ -100,9 +123,9 @@ router.get("/dashboard", async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
   let count = 0;
-    for await (const _ of nodes.iterator()) {
-      count++;
-    }
+  for await (const _ of nodes.iterator()) {
+    count++;
+  }
   const userId = await sessions.get(token);
   if (!userId) {
     res.clearCookie("SESSION-COOKIE");
@@ -126,6 +149,15 @@ router.get("/auth/discord/callback",
   async (req, res) => {
     const user = req.user;
     if (!user || !user.token) return res.redirect("/");
+     // Fetch full user object from DB
+    const fullUser = await users.get(user.id);
+    if (!fullUser) return res.redirect("/?err=NO-USER");
+
+    // Check if banned
+    if (fullUser.banned) {
+      res.clearCookie("SESSION-COOKIE");
+      return res.redirect("/?err=USER_BANNED");
+    }
 
     res.cookie("SESSION-COOKIE", user.token, { httpOnly: true, maxAge: SESSION_TTL });
     res.redirect("/dashboard");
@@ -139,11 +171,105 @@ router.get("/logout", async (req, res) => {
     if (token) await sessions.delete(token);
 
     res.clearCookie("SESSION-COOKIE", { httpOnly: true });
-    req.logout(() => {});
+    req.logout(() => { });
     res.redirect("/");
   } catch (err) {
     logger.error(err);
     res.status(500).send("Error logging out " + err);
+  }
+});
+router.get("/register", (req, res) => {
+  const name = process.env.APP_NAME;
+  res.render("register", { error: req.query.err || "", name });
+});
+
+router.post("/register", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.redirect("/register?err=Missing fields");
+    }
+
+    // Check if email already exists
+    for await (const [id, user] of users.iterator()) {
+      if (user.email && user.email.toLowerCase() === email.toLowerCase()) {
+        return res.redirect("/register?err=Email already registered");
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const id = uuid();
+
+    const isAdmin = adminEmails.includes(email.toLowerCase());
+
+    const newUser = {
+      id,
+      username,
+      email,
+      password: hashedPassword, // store hash
+      profilePicture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
+      admin: isAdmin,
+      servers: {},
+    };
+
+    await users.set(id, newUser);
+
+    const token = uuid();
+    await sessions.set(token, id);
+
+    res.cookie("SESSION-COOKIE", token, { httpOnly: true, maxAge: SESSION_TTL });
+    res.redirect("/dashboard");
+  } catch (err) {
+    logger.error("Register error", err);
+    res.redirect("/register?err=Error registering user");
+  }
+});
+
+// Login route
+router.get("/login", (req, res) => {
+  const name = process.env.APP_NAME;
+  res.render("login", { error: req.query.err || "", name });
+});
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.redirect("/login?err=Missing fields");
+
+    let foundUser = null;
+    for await (const [id, user] of users.iterator()) {
+      if (user.email && user.email.toLowerCase() === email.toLowerCase()) {
+        foundUser = { ...user }; // <-- create a fresh copy, do NOT mutate original
+        break;
+      }
+    }
+
+    if (!foundUser) return res.redirect("/login?err=Invalid credentials");
+
+    const match = await bcrypt.compare(password, foundUser.password || "");
+    if (!match) return res.redirect("/login?err=Invalid credentials");
+
+    // Always re-check admin based on env
+    foundUser.admin = adminEmails.includes(foundUser.email.toLowerCase());
+    if (foundUser.banned) return res.redirect("/?err=USER_BANNED");
+
+    // Only set profile picture if empty
+    if (!foundUser.profilePicture || foundUser.profilePicture === "") {
+      foundUser.profilePicture = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(foundUser.username)}`;
+    }
+
+    // Save updated user individually
+    await users.set(foundUser.id, foundUser);
+
+    const token = uuid();
+    await sessions.set(token, foundUser.id);
+
+    res.cookie("SESSION-COOKIE", token, { httpOnly: true, maxAge: SESSION_TTL });
+    res.redirect("/dashboard");
+
+  } catch (err) {
+    logger.error("Login error", err);
+    res.redirect("/login?err=Error logging in");
   }
 });
 
