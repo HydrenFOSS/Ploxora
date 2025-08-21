@@ -4,7 +4,7 @@ const Keyv = require("keyv");
 const crypto = require("crypto");
 const Logger = require("../utilities/logger");
 const logger = new Logger({ prefix: "PloxoraAPI", level: "debug" });
-
+const bcrypt = require("bcrypt");
 const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
 const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
@@ -213,6 +213,41 @@ router.post("/api/v1/users/ban", checkApiKey, async (req, res) => {
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ error: "Failed to ban user" });
+  }
+});
+
+router.post("/api/v1/users/new", checkApiKey, async (req, res) => {
+  try {
+    const { username, email, password, admin = false } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    for await (const [id, user] of users.iterator()) {
+      if (user.email && user.email.toLowerCase() === email.toLowerCase()) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const id = uuid();
+
+    const newUser = {
+      id,
+      username,
+      email,
+      password: hashedPassword,
+      profilePicture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
+      admin: Boolean(admin),
+      servers: {},
+    };
+
+    await users.set(id, newUser);
+
+    res.status(201).json({ success: true, user: { id, username, email, admin } });
+  } catch (err) {
+    logger.error("CreateUser API error", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
