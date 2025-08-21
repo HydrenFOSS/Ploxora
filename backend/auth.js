@@ -158,7 +158,7 @@ router.get("/auth/discord/callback",
       res.clearCookie("SESSION-COOKIE");
       return res.redirect("/?err=USER_BANNED");
     }
-
+    req.user = fullUser;
     res.cookie("SESSION-COOKIE", user.token, { httpOnly: true, maxAge: SESSION_TTL });
     res.redirect("/dashboard");
   }
@@ -260,6 +260,7 @@ router.post("/login", async (req, res) => {
 
     // Save updated user individually
     await users.set(foundUser.id, foundUser);
+    req.user = foundUser;
 
     const token = uuid();
     await sessions.set(token, foundUser.id);

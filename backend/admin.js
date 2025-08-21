@@ -7,7 +7,6 @@ const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
-const images = new Keyv(process.env.IMAGES_DB || "sqlite://images.sqlite");
 const crypto = require("crypto");
 
 const adminEmails = (process.env.ADMIN_USERS || "")
@@ -68,51 +67,6 @@ async function requireLogin(req, res, next) {
     res.redirect("/?err=AUTH-FAILED");
   }
 }
-async function ensureDefaultImage() {
-  try {
-    // Fetch all images
-    const allImages = [];
-    for await (const [key, value] of images.iterator()) {
-      allImages.push(value);
-    }
-
-    // Check if Ubuntu:latest exists
-    const ubuntuImage = allImages.find(
-      (img) => img.name === "Ubuntu:latest with SystemCTL/SSH Tmate"
-    );
-
-    if (!ubuntuImage) {
-      logger.info("Default Ubuntu:latest image not found, adding default...");
-
-      // Fetch JSON from default URL
-      const url = "https://raw.githubusercontent.com/HydrenFOSS/PloxoraImages/refs/heads/main/default.json";
-      const response = await fetch(url);
-      const jsonData = await response.json();
-
-      // Add full response fields to Keyv
-      const id = uuid();
-      const image = {
-        id,
-        name: jsonData.name || "Ubuntu:latest",
-        version: jsonData.version || "latest",
-        image: jsonData.image || "",          // 👈 keep actual docker image string
-        description: jsonData.description || "SystemCTL/SSH Tmate",
-        author: jsonData.author || "HydrenFOSS",
-        createdAt: new Date().toISOString(),
-        sourceUrl: url                        // optional: keep track of where it came from
-      };
-
-      await images.set(id, image);
-      logger.info("Default image added successfully:", image);
-    } else {
-      logger.info("Required image exists, no action needed.");
-    }
-  } catch (err) {
-    logger.error("Error checking/adding default image:", err);
-  }
-}
-
-ensureDefaultImage();
 router.get("/admin/node/:id", requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
@@ -270,10 +224,6 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
      allUsers.push({ id: key, ...value, banned: value.banned || false });
     }
     
-    const allImages = [];
-    for await (const [key, value] of images.iterator()) {
-      allImages.push({ id: key, ...value });
-    }
     const allNodes = [];
     for await (const [key, value] of nodes.iterator()) {
       allNodes.push({ id: key, ...value });
@@ -285,7 +235,6 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
       users: allUsers,
       nodes: allNodes,
       req,
-      images: allImages
     });
   } catch (err) {
     res.status(500).send("Error loading servers");
@@ -293,14 +242,11 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 });
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, gb, cores, userId, nodeId, imageId } = req.body;
+    const { name, gb, cores, userId, nodeId } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).send("Node not found");
     
-    const image = await images.get(imageId);
-    if (!image) return res.status(404).send("Image not found");
-
     const user = await users.get(userId);
     if (!user) return res.status(404).send("User not found");
 
@@ -332,8 +278,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
       createdAt: new Date(),
       status: "online",
       user: userId,
-      node: nodeId,
-      image: imageId
+      node: nodeId
     };
 
     // Save in user
@@ -464,71 +409,6 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
   } catch (error) {
     logger.error("Error creating node:", error);
     res.redirect("/admin/nodes?err=FAILED-CREATE");
-  }
-});
-router.get("/admin/images", requireLogin, requireAdmin, async (req, res) => {
-  try {
-    const allImages = [];
-    for await (const [key, value] of images.iterator()) {
-      allImages.push({ id: key, ...value });
-    }
-
-    res.render("admin/images", {
-      name: process.env.APP_NAME,
-      user: req.user,
-      images: allImages,
-      req,
-    });
-  } catch (err) {
-    logger.error("Error loading images:", err);
-    res.status(500).send("Error loading images");
-  }
-});
-router.post("/admin/images/create", requireLogin, requireAdmin, async (req, res) => {
-  try {
-    const { url } = req.body;
-    if (!url) return res.status(400).send("Missing JSON URL");
-
-    // Fetch the JSON from the given URL
-    const response = await fetch(url);
-    if (!response.ok) return res.status(400).send("Invalid JSON URL");
-
-    const data = await response.json();
-
-    // Validate required fields inside JSON
-    const { image, description, name, version, author } = data;
-    if (!image || !name || !version) {
-      return res.status(400).send("JSON missing required fields (image, name, version)");
-    }
-
-    const id = uuid();
-    const imageEntry = {
-      id,
-      image,
-      description: description || "",
-      name,
-      version,
-      author: author || "CarbonLabs",
-      url,
-      createdAt: new Date().toISOString()
-    };
-
-    await images.set(id, imageEntry);
-    res.redirect("/admin/images?msg=IMAGE_CREATED");
-  } catch (err) {
-    logger.error("Error creating image:", err);
-    res.status(500).send("Error creating image");
-  }
-});
-
-router.post("/admin/images/delete/:id", requireLogin, requireAdmin, async (req, res) => {
-  try {
-    const id = req.params.id;
-    await images.delete(id);
-    res.redirect("/admin/images?msg=IMAGE_DELETED");
-  } catch (err) {
-    logger.error("Error deleting image:", err);
-    res.status(500).send("Error deleting image");
   }
 });
 
