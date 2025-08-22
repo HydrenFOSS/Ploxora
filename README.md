@@ -31,6 +31,7 @@ ADMIN_USERS=example@gmail.com,example2@gmail.com
 DATABASE_FILE_NAME=sqlite://users.sqlite
 SESSIONS_FILE_NAME=sqlite://sessions.sqlite
 NODES_DB=sqlite://nodes.sqlite
+SETTINGS_DB=sqlite://settings.sqlite
 SERVERS_DB=sqlite://servers.sqlite
 ```
 

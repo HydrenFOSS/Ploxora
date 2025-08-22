@@ -15,6 +15,7 @@ const bcrypt = require("bcrypt");
 const SESSION_TTL = 1000 * 60 * 60 * 24; // 24h TTL
 const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
+const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
 const sessions = new Keyv({ uri: process.env.SESSIONS_DB || 'sqlite://sessions.sqlite', ttl: SESSION_TTL });
 
 users.on('error', err => logger.error('Users DB Error', err));
@@ -22,7 +23,10 @@ sessions.on('error', err => logger.error('Sessions DB Error', err));
 
 // Prepare admin emails array
 const adminEmails = (process.env.ADMIN_USERS || "").split(",").map(e => e.trim().toLowerCase());
-
+async function getAppName() {
+  const appName = await settings.get("NAME");
+  return appName;
+}
 function uuid() {
   const bytes = crypto.randomBytes(16);
 
@@ -114,7 +118,7 @@ router.get("/", async (req, res) => {
     if (userId) return res.redirect('/dashboard');
     else res.clearCookie("SESSION-COOKIE"); // remove invalid cookie
   }
-  const name = process.env.APP_NAME;
+  const name = await getAppName();
   res.render("login", { error: req.query.err || "", name });
 });
 
@@ -138,7 +142,7 @@ router.get("/dashboard", async (req, res) => {
     return res.redirect("/?err=LOGIN-IN-FIRST");
   }
 
-  const name = process.env.APP_NAME;
+  const name = await getAppName();
   res.render('dashboard', { user, name, nodes: count });
 });
 
@@ -178,8 +182,8 @@ router.get("/logout", async (req, res) => {
     res.status(500).send("Error logging out " + err);
   }
 });
-router.get("/register", (req, res) => {
-  const name = process.env.APP_NAME;
+router.get("/register", async (req, res) => {
+  const name = await getAppName();
   res.render("register", { error: req.query.err || "", name });
 });
 
@@ -226,8 +230,8 @@ router.post("/register", async (req, res) => {
 });
 
 // Login route
-router.get("/login", (req, res) => {
-  const name = process.env.APP_NAME;
+router.get("/login", async (req, res) => {
+  const name = await getAppName();
   res.render("login", { error: req.query.err || "", name });
 });
 

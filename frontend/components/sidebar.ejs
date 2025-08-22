@@ -1,11 +1,11 @@
 <aside
    class="w-64 bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] rounded-3xl m-4 h-[calc(100vh-3rem)] shadow-xl flex flex-col justify-between border border-[#2a2a2a]">
-   <!-- Header / Logo -->
-   <div class="p-6 border-b border-[#2a2a2a]">
-      <h2 class="text-2xl font-bold tracking-wide text-white">
-         <%= name %>
-      </h2>
-   </div>
+<div class="p-6 border-b border-[#2a2a2a] flex flex-row items-center gap-3">
+  <img id="logo" class="w-12 h-12 object-contain rounded-lg shadow-md" style="display:none;" />
+  <h2 class="text-2xl font-bold tracking-wide text-white">
+     <%= name %>
+  </h2>
+</div>
    <!-- Navigation -->
    <nav class="flex-1 px-4 py-6">
       <ul class="space-y-2">
@@ -35,6 +35,15 @@
          <li class="pt-6">
             <p class="text-center uppercase tracking-wide text-gray-500 mb-2">Admin</p>
             <ul class="space-y-3">
+               <li>
+                  <a href="/admin/settings"
+                     class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-300 hover:bg-[#ff4d4d]/10 hover:text-[#ff4d4d] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                     </svg>
+                     Settings
+                  </a>
+               </li>
                <li>
                   <a href="/admin/nodes"
                      class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-300 hover:bg-[#ff4d4d]/10 hover:text-[#ff4d4d] transition">
@@ -97,5 +106,23 @@
                                                                                   });
                                                                                   
    </script>
+   
+<script>
+  const logoUrl = '/uploads/logo.png';
+  const img = document.getElementById('logo');
+
+  fetch(logoUrl, { method: 'HEAD' })
+    .then(res => {
+      if (res.ok) {
+        img.src = logoUrl;
+        img.style.display = 'block';
+      }
+    })
+    .catch(err => {
+      // Logo doesn't exist, hide the img
+      console.log('Logo not found:', err);
+      img.style.display = 'none';
+    });
+</script>
 </aside>
 >

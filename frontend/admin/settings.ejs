@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Settings | <%= name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen text-white relative flex flex-col">
+
+  <!-- Background gradients -->
+  <div class="fixed inset-0 flex flex-col -z-10">
+    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
+    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
+  </div>
+
+  <!-- Navbar -->
+  <%- include('../components/nav.ejs') %>
+
+  <div class="flex flex-1 relative z-10">
+    <%- include('../components/sidebar.ejs') %>
+
+    <!-- Main content -->
+    <main class="flex-1 p-6 space-y-8">
+
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">Settings</h2>
+        </div>
+
+        <% if (req.query.msg === "SETTINGS_UPDATED") { %>
+          <div class="mb-4 p-4 rounded-lg bg-green-600 text-white flex items-center space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <p>Settings updated successfully!</p>
+          </div>
+        <% } %>
+
+        <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a] bg-[#111] p-6">
+        <!-- App Name -->
+  <div class="mb-4">
+    <label class="block text-gray-300 mb-1">App Name</label>
+    <input type="text" id="NAME" value="<%= settings.NAME %>"
+      class="w-full p-2 rounded-lg bg-[#1a1a1a] border border-[#333] text-white"
+      onchange="updateSetting('NAME', this.value)">
+  </div>
+
+  <!-- IsLogs -->
+  <div class="mb-4 flex items-center space-x-2">
+    <input type="checkbox" id="IsLogs" <%= settings.IsLogs ? 'checked' : '' %> 
+      onchange="updateSetting('IsLogs', this.checked)">
+    <label class="text-gray-300">Enable Logs</label>
+  </div>
+
+  <!-- Discord Webhook -->
+  <div class="mb-4">
+    <label class="block text-gray-300 mb-1">Discord Webhook</label>
+    <input type="text" id="ifisLogs" value="<%= settings.ifisLogs %>"
+      class="w-full p-2 rounded-lg bg-[#1a1a1a] border border-[#333] text-white"
+      onchange="updateSetting('ifisLogs', this.value)">
+  </div>
+
+  <!-- Logo -->
+  <div class="mb-4">
+    <label class="block text-gray-300 mb-1">Logo</label>
+    <% if(logoExists){ %>
+      <img src="/uploads/logo.png" class="w-32 h-32 object-contain mb-2">
+      <label class="text-gray-400 text-sm mb-1">Change logo:</label>
+    <% } else { %>
+      <label class="text-gray-400 text-sm mb-1">Upload logo:</label>
+    <% } %>
+    <input type="file" id="Logo" class="w-full text-gray-300 bg-[#1a1a1a] border border-[#333] rounded-lg p-2" 
+      onchange="uploadLogo(this)">
+  </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <%- include('../components/footer.ejs') %>
+  <script>
+    async function updateSetting(key, value) {
+      try {
+        const res = await fetch(`/admin/settings/update/${key}/${encodeURIComponent(value)}`);
+        if (res.ok) {
+          alert(`${key} updated successfully!`);
+        } else {
+          alert(`Failed to update ${key}`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert(`Error updating ${key}`);
+      }
+    }
+
+    async function uploadLogo(input) {
+      if (!input.files.length) return;
+      const formData = new FormData();
+      formData.append('Logo', input.files[0]);
+
+      const res = await fetch('/admin/settings/upload-logo', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('Logo').previousElementSibling.src = data.logoUrl;
+        alert('Logo updated!');
+      } else {
+        alert('Failed to upload logo');
+      }
+    }
+  </script>
+
+</body>
+
+</html>

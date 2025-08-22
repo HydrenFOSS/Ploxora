@@ -1,10 +1,13 @@
 const router = require("express").Router();
 const Logger = require("../utilities/logger");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const Keyv = require("keyv");
-const net = require("net");
 const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
+const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
 const crypto = require("crypto");
@@ -13,6 +16,21 @@ const adminEmails = (process.env.ADMIN_USERS || "")
   .split(",")
   .map(e => e.trim().toLowerCase());
 
+  const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, "../public/uploads");
+    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `logo${ext}`);
+  }
+});
+async function getAppName() {
+  const appName = await settings.get("NAME");
+  return appName;
+}
 function uuid() {
   const bytes = crypto.randomBytes(16);
 
@@ -123,6 +141,73 @@ router.get("/admin/node/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Error loading node details" });
   }
 });
+async function ensureDefaultSettings() {
+  const defaultSettings = {
+    NAME: process.env.APP_NAME || "Ploxora",
+    IsLogs: false,
+    ifisLogs: "",
+    Logo: ""
+  };
+
+  // Only set missing keys
+  for (const key in defaultSettings) {
+    const existing = await settings.get(key);
+    if (existing === undefined || existing === null) {
+      await settings.set(key, defaultSettings[key]);
+    }
+  }
+}
+ensureDefaultSettings().catch(err => console.error("Failed to initialize settings:", err));
+const upload = multer({ storage });
+// Route to upload logo
+router.post("/admin/settings/upload-logo", requireLogin, requireAdmin, upload.single("Logo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+
+    // Save logo path to settings
+    const logoPath = `/uploads/logo.png`;
+    await settings.set("Logo", logoPath);
+
+    res.json({ success: true, logoUrl: logoPath });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to upload logo" });
+  }
+});
+router.get("/admin/settings", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const allSettings = {};
+    for await (const [key, value] of settings.iterator()) {
+      if (key !== "__initialized__") allSettings[key] = value;
+    }
+     const logoPath = path.join(__dirname, "../public/uploads/logo.png");
+    const logoExists = fs.existsSync(logoPath);
+    res.render("admin/settings", {
+      name: await getAppName(),
+      user: req.user,
+      settings: allSettings,
+      req,
+      logoExists,
+    });
+  } catch (err) {
+    logger.error("Error loading settings:", err);
+    res.status(500).send("Error loading settings");
+  }
+});
+
+router.get("/admin/settings/update/:key/:value", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { key, value } = req.params;
+
+    // Update the setting
+    await settings.set(key, value);
+
+    res.redirect("/admin/settings?msg=SETTINGS_UPDATED");
+  } catch (err) {
+    logger.error("Error updating settings via URL:", err);
+    res.status(500).send("Failed to update settings");
+  }
+});
 router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
   try {
     const allNodes = [];
@@ -199,7 +284,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     }
 
     res.render("admin/nodes", {
-      name: process.env.APP_NAME,
+      name: await getAppName(),
       user: req.user,
       nodes: allNodes,
       req,
@@ -229,7 +314,7 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
       allNodes.push({ id: key, ...value });
     }
     res.render("admin/servers", {
-      name: process.env.APP_NAME,
+      name: await getAppName(),
       user: req.user,
       servers: allServers,
       users: allUsers,
@@ -420,7 +505,7 @@ router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
     }
 
     res.render("admin/users", {
-      name: process.env.APP_NAME,
+      name: await getAppName(),
       users: allUsers,
       req,
       user: req.user,
