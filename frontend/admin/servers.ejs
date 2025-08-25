@@ -1,21 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin servers | <%= name %>
-  </title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
+<%- include('../components/head') %>
 <body class="min-h-screen text-white relative flex flex-col">
 
-  <!-- Background gradients -->
-  <div class="fixed inset-0 flex flex-col -z-10">
-    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
-  </div>
+<div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
+</div>
 
   <!-- Navbar -->
   <%- include('../components/nav.ejs') %>
@@ -78,7 +71,7 @@
             <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
               <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
                 <thead>
-                  <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
+                  <tr class="bg-neutral-950 text-left text-gray-300 text-sm uppercase tracking-wide">
                     <th class="px-6 py-3">VPS Name</th>
                     <th class="px-6 py-3">SSH</th>
                     <th class="px-6 py-3">ContainerId</th>
@@ -90,8 +83,7 @@
                 <tbody>
                   <% if (servers && servers.length> 0) { %>
                     <% servers.forEach((server, index)=> { %>
-                      <tr
-                        class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+                  <tr class="transition hover:bg-neutral-800 <%= index % 2 === 0 ? 'bg-stone-950' : 'bg-stone-950' %>">
                         <td class="px-6 py-3 font-medium text-gray-200">
                           <%= server.name || "Unnamed server" %>
                         </td>

@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings | <%= name %></title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<%- include('components/head') %>
+
 <body class="min-h-screen text-white relative flex flex-col">
 
-  <!-- Background gradients -->
-  <div class="fixed inset-0 flex flex-col -z-10">
-    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
-  </div>
+ <div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
+</div>
 
   <!-- Navbar -->
   <%- include('components/nav.ejs') %>
@@ -25,13 +22,13 @@
     <main class="flex-1 p-6 space-y-8">
 
       <!-- Header -->
-      <div class="bg-gradient-to-r from-[#1a1a1a] to-[#111111] p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
         <h1 class="text-3xl font-bold text-gray-100">Settings ⚙️</h1>
         <p class="text-gray-400 mt-2">Manage your account preferences and security.</p>
       </div>
 
       <!-- Account Settings -->
-      <section class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-4">
+      <section class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-4">
         <h2 class="text-xl font-semibold text-gray-200 mb-2">Account Information</h2>
         <form action="/settings/update-profile" method="POST" class="space-y-4">
          <div>
@@ -52,7 +49,7 @@
       </section>
 
       <!-- Danger Zone -->
-      <section class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <section class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
         <h2 class="text-xl font-semibold text-red-500 mb-2">Danger Zone</h2>
         <p class="text-gray-400 mb-4">Deleting your account is permanent and cannot be undone.</p>
         <form action="/settings/delete-account" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');">

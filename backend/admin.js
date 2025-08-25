@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Logger = require("../utilities/logger");
+const logDiscord = require("../utilities/discordLogging");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const multer = require("multer");
 const path = require("path");
@@ -146,7 +147,8 @@ async function ensureDefaultSettings() {
     NAME: process.env.APP_NAME || "Ploxora",
     IsLogs: false,
     ifisLogs: "",
-    Logo: ""
+    Logo: "",
+    Theme: ""
   };
 
   // Only set missing keys
@@ -372,7 +374,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
 
     // Save in servers db
     await servers.set(server.id, server);
-
+    logDiscord(`Server Created for ${user.username} as ${name}`, "info")
     res.redirect("/admin/servers?msg=SERVER_CREATED");
   } catch (err) {
     logger.error("Error creating server:", err);
@@ -416,7 +418,7 @@ router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req,
 
     // Remove from servers DB
     await servers.delete(serverId);
-
+    logDiscord(`Server Deleted of ${user.username} as ${serverId}`, "info")
     res.redirect("/admin/servers?msg=SERVER_DELETED");
   } catch (err) {
     logger.error("Error deleting server:", err);
@@ -426,31 +428,48 @@ router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req,
 router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
-
     const node = await nodes.get(nodeId);
-    if (!node) {
-      return res.status(404).send("Node not found");
-    }
 
-    // Optional: Check if there are servers linked to this node
+    if (!node) return res.status(404).send("Node not found");
+
+    // Collect all servers associated with this node
     const linkedServers = [];
     for await (const [key, value] of servers.iterator()) {
-      if (value.node === nodeId) {
-        linkedServers.push(key);
+      if (value.node === nodeId) linkedServers.push({ id: key, ...value });
+    }
+
+    // Delete all linked servers
+    for (const server of linkedServers) {
+      try {
+         await fetch(
+            `http://${node.address}:${node.port}/vps/delete?x-verification-key=${node.token}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ containerId: server.containerId }),
+            }
+          );
+
+        const user = await users.get(server.user);
+        if (user && Array.isArray(user.servers)) {
+          user.servers = user.servers.filter(s => s.id !== server.id);
+          await users.set(server.user, user);
+        }
+
+        await servers.delete(server.id);
+        logDiscord(`Server ${server.name || server.id} deleted due to node deletion`, "warn");
+
+      } catch (err) {
+        logger.error(`Failed to delete server ${server.id} on node ${nodeId}:`, err.message);
       }
     }
-
-    if (linkedServers.length > 0) {
-      return res.status(400).send("Cannot delete node: servers are still linked to it");
-    }
-
-    // Remove node from DB
     await nodes.delete(nodeId);
+    logDiscord(`Node ${node.name} and all its servers were deleted`, "warn");
 
-    res.redirect("/admin/nodes?msg=NODE_DELETED");
+    res.redirect("/admin/nodes?msg=NODE_DELETED_WITH_SERVERS");
   } catch (err) {
-    logger.error("Error deleting node:", err);
-    res.status(500).send("Error deleting node");
+    logger.error("Error deleting node and linked servers:", err);
+    res.status(500).send("Error deleting node and linked servers");
   }
 });
 

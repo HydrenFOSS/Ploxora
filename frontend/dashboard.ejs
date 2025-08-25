@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | <%= name %></title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<%- include('components/head') %>
 <body class="min-h-screen text-white relative flex flex-col">
 
-  <!-- Background gradients -->
-  <div class="fixed inset-0 flex flex-col -z-10">
-    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
-  </div>
-
+  <div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
+</div>
   <!-- Navbar -->
 <%- include('components/nav.ejs') %>
 
@@ -24,22 +19,22 @@
 <main class="flex-1 p-6 space-y-8">
 
   <!-- Greeting -->
-  <div class="bg-gradient-to-r from-[#1a1a1a] to-[#111111] p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+  <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
     <h1 class="text-3xl font-bold text-gray-100">Welcome back, <%= user.username %> 👋</h1>
     <p class="text-gray-400 mt-2">Here’s a quick overview of your account and servers.</p>
   </div>
 
   <!-- Overview cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+    <div class="bg-neutral-950 p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
       <h3 class="text-sm text-gray-400 mb-2">Total Servers</h3>
       <p class="text-2xl font-bold text-gray-200"><%= user.servers?.length || 0 %></p>
     </div>
-    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+    <div class="bg-neutral-950 p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
       <h3 class="text-sm text-gray-400 mb-2">Account Type</h3>
       <p class="text-2xl font-bold text-gray-200"><%= user.admin ? "Admin" : "User" %></p>
     </div>
-    <div class="bg-gradient-to-b from-[#1a1a1a] to-[#111111] p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
+    <div class="bg-neutral-950 p-5 rounded-2xl shadow-lg border border-[#2a2a2a]">
       <h3 class="text-sm text-gray-400 mb-2">Total Nodes</h3>
       <p class="text-2xl font-bold text-gray-200"><%= nodes %></p>
     </div>
@@ -49,9 +44,9 @@
   <section>
     <h2 class="text-2xl font-semibold mb-4 text-gray-200 tracking-wide">Your Servers</h2>
     <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
-      <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
+      <table class="min-w-full bg-neutral-950 rounded-2xl overflow-hidden">
         <thead>
-          <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
+          <tr class="bg-neutral-950 text-left text-gray-300 text-sm uppercase tracking-wide">
             <th class="px-6 py-3">Server Name</th>
             <th class="px-6 py-3">SSH</th>
             <th class="px-6 py-3">Created At</th>
@@ -60,7 +55,7 @@
         <tbody>
           <% if (user.servers && user.servers.length > 0) { %>
             <% user.servers.forEach((server, index) => { %>
-              <tr class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+              <tr class="transition hover:bg-neutral-800 <%= index % 2 === 0 ? 'bg-stone-950' : 'bg-stone-950' %>">
                 <td class="px-6 py-3 font-medium text-gray-200"><%= server.name || "Empty" %></td>
                 <td class="px-6 py-3 text-gray-300">  <%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %>
 </td>

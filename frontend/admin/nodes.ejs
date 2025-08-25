@@ -1,22 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Nodes | <%= name %>
-  </title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<%- include('../components/head') %>
 
 <body class="min-h-screen text-white relative flex flex-col">
 
-  <!-- Background gradients -->
-  <div class="fixed inset-0 flex flex-col -z-10">
-    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
-  </div>
-
+<div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
+</div>
   <!-- Navbar -->
   <%- include('../components/nav.ejs') %>
 
@@ -57,6 +50,7 @@
                         <% if (req.query.msg === "USER_UNBANNED") { %>User Unbanned<% } %>
                         <% if (req.query.msg === "SERVER_CREATED") { %>Server Created<% } %>
                         <% if (req.query.msg === "SERVER_DELETED") { %>Server Deleted<% } %>
+                        <% if (req.query.msg === "NODE_DELETED_WITH_SERVERS") { %>Node Deleted<% } %>
                         <% if (req.query.msg === "NODE-CREATED") { %>Node Created<% } %>
                         <% if (req.query.msg === "NODE_DELETED") { %>Node Deleted<% } %>
                         <% if (req.query.msg === "IMAGE_CREATED") { %>Image Created<% } %>
@@ -68,6 +62,7 @@
                         <% if (req.query.msg === "SERVER_CREATED") { %>Server deployed successfully<% } %>
                         <% if (req.query.msg === "SERVER_DELETED") { %>Server deleted successfully<% } %>
                         <% if (req.query.msg === "NODE-CREATED") { %>Node added successfully<% } %>
+                        <% if (req.query.msg === "NODE_DELETED_WITH_SERVERS") { %>Node deleted successfully with servers<% } %>
                         <% if (req.query.msg === "NODE_DELETED") { %>Node deleted successfully<% } %>
                         <% if (req.query.msg === "IMAGE_CREATED") { %>Image added successfully<% } %>
                         <% if (req.query.msg === "IMAGE_DELETED") { %>Image deleted successfully<% } %>
@@ -78,7 +73,7 @@
             <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a]">
               <table class="min-w-full bg-gradient-to-b from-[#1a1a1a] to-[#111111] rounded-2xl overflow-hidden">
                 <thead>
-                  <tr class="bg-[#222222] text-left text-gray-300 text-sm uppercase tracking-wide">
+                  <tr class="bg-neutral-950 text-left text-gray-300 text-sm uppercase tracking-wide">
                     <th class="px-6 py-3">Node Name</th>
                     <th class="px-6 py-3">Address</th>
                     <th class="px-6 py-3">Port</th>
@@ -89,8 +84,7 @@
                 <tbody>
                   <% if (nodes && nodes.length> 0) { %>
                     <% nodes.forEach((node, index)=> { %>
-                      <tr
-                        class="transition hover:bg-[#2c2c2c] <%= index % 2 === 0 ? 'bg-[#1a1a1a]' : 'bg-[#181818]' %>">
+              <tr class="transition hover:bg-neutral-800 <%= index % 2 === 0 ? 'bg-stone-950' : 'bg-stone-950' %>">
                         <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
                           <% if (node.status==="Online" ) { %>
                             <!-- Green dot -->

@@ -1,20 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Settings | <%= name %></title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<%- include('../components/head') %>
 
 <body class="min-h-screen text-white relative flex flex-col">
 
-  <!-- Background gradients -->
-  <div class="fixed inset-0 flex flex-col -z-10">
-    <div class="h-1/2 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a]"></div>
-    <div class="h-1/2 bg-gradient-to-b from-[#242424] to-[#1a1a1a]"></div>
-  </div>
+<div class="absolute inset-0 flex flex-col">
+  <!-- Top gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
+  <!-- Bottom gradient -->
+  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
+</div>
 
   <!-- Navbar -->
   <%- include('../components/nav.ejs') %>
@@ -39,7 +34,7 @@
           </div>
         <% } %>
 
-        <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a] bg-[#111] p-6">
+        <div class="overflow-x-auto rounded-2xl shadow-lg border border-[#2a2a2a] bg-neutral-950 p-6">
         <!-- App Name -->
   <div class="mb-4">
     <label class="block text-gray-300 mb-1">App Name</label>
@@ -59,7 +54,7 @@
   <div class="mb-4">
     <label class="block text-gray-300 mb-1">Discord Webhook</label>
     <input type="text" id="ifisLogs" value="<%= settings.ifisLogs %>"
-      class="w-full p-2 rounded-lg bg-[#1a1a1a] border border-[#333] text-white"
+      class="blur-sm hover:blur-none w-full p-2 rounded-lg bg-[#1a1a1a] border border-[#333] text-white"
       onchange="updateSetting('ifisLogs', this.value)">
   </div>
 
