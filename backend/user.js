@@ -8,6 +8,7 @@ const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite")
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
+const nodes = new Keyv(process.env.NODES_DB || 'sqlite://nodes.sqlite');
 
 async function requireLogin(req, res, next) {
   try {
@@ -83,4 +84,81 @@ router.post('/settings/delete-account', requireLogin, async (req, res) => {
     res.redirect('/settings?err=DELETE_FAILED');
   }
 });
+// Dashboard page
+router.get("/dashboard", async (req, res) => {
+  const token = req.cookies["SESSION-COOKIE"];
+  if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
+  let count = 0;
+  for await (const _ of nodes.iterator()) {
+    count++;
+  }
+  const userId = await sessions.get(token);
+  if (!userId) {
+    res.clearCookie("SESSION-COOKIE");
+    return res.redirect("/?err=LOGIN-IN-FIRST");
+  }
+
+  const user = await users.get(userId);
+  if (!user) {
+    res.clearCookie("SESSION-COOKIE");
+    return res.redirect("/?err=LOGIN-IN-FIRST");
+  }
+
+  const name = await getAppName();
+  res.render('dashboard', { user, name, nodes: count });
+});
+
+router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
+  const { containerId } = req.params;
+  const q = req.user;
+
+  try {
+    const user = await users.get(q.id);
+    if (!user) {
+      return res.status(403).json({ error: "User not found" });
+    }
+
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    const node = await nodes.get(server.node);
+    if (!node) {
+      return res.status(500).json({ error: "Node not found" });
+    }
+
+    // fetch returns a Response object, you need to parse JSON
+    const response = await fetch(
+      `http://${node.address}:${node.port}/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Failed to fetch from node" });
+    }
+
+    const data = await response.json(); // 👈 parse JSON
+    res.json(data);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch stats", details: err.message });
+  }
+});
+
+router.get("/vps/:containerId", requireLogin, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).send("You do not have access to this VPS.");
+    }
+    res.render("vps", { user, server, name: await getAppName() });
+  } catch (err) {
+    logger.error("VPS page error:", err);
+    res.status(500).send("Failed to load VPS page.");
+  }
+});
+
 module.exports = router;

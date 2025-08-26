@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('components/head') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+
+  <!-- Sidebar -->
+  <%- include('components/sidebar.ejs') %>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Navbar -->
+    <%- include('components/nav.ejs') %>
+
+    <!-- VPS Dashboard -->
+    <main class="p-6 flex flex-col space-y-6">
+    <div
+      class="flex flex-col md:flex-row md:justify-between md:items-center bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <div class="flex flex-col md:flex-row md:items-center md:space-x-6">
+        <h1 class="text-3xl font-bold text-gray-200 mb-2 md:mb-0">
+          <%= server.name || "Unnamed VPS" %>
+        </h1>
+    
+        <!-- SSH Info -->
+        <div class="text-gray-300 text-sm md:text-base flex items-center space-x-2">
+          <span class="font-semibold">SSH:</span>
+          <% if (server.ssh) { %>
+            <span class="inline-block px-3 py-1 bg-neutral-700 rounded text-green-400 font-mono">
+              <%= server.ssh.replace(/^ssh session:\s*/i, '' ) %>
+            </span>
+            <% } else { %>
+              <span class="inline-block px-3 py-1 bg-neutral-700 rounded text-gray-500 italic">N/A</span>
+              <% } %>
+        </div>
+      </div>
+    
+      <span id="vps-status"
+        class="inline-block text-white px-4 py-2 rounded bg-gray-500 font-semibold text-lg">Loading</span>
+    </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- CPU -->
+        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">CPU Usage</h2>
+          <canvas id="cpuChart" class="w-full h-64"></canvas>
+        </div>
+
+        <!-- RAM -->
+        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">RAM Usage</h2>
+          <canvas id="ramChart" class="w-full h-64"></canvas>
+        </div>
+
+        <!-- Disk -->
+        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+          <h2 class="text-xl font-semibold text-gray-200 mb-4">Disk Usage</h2>
+          <canvas id="diskChart" class="w-full h-64"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>lucide.createIcons();</script>
+<script>
+const containerId = "<%= server.containerId %>";
+
+// Chart.js setup
+const labels = Array(20).fill(''); // 20 points
+const cpuData = { labels, datasets: [{ label: 'CPU %', data: Array(20).fill(0), borderColor: 'rgb(34,197,94)', backgroundColor: 'rgba(34,197,94,0.2)', tension: 0.3 }] };
+const ramData = { labels, datasets: [{ label: 'RAM MB', data: Array(20).fill(0), borderColor: 'rgb(59,130,246)', backgroundColor: 'rgba(59,130,246,0.2)', tension: 0.3 }] };
+const diskData = { labels, datasets: [{ label: 'Disk MB', data: Array(20).fill(0), borderColor: 'rgb(245,158,11)', backgroundColor: 'rgba(245,158,11,0.2)', tension: 0.3 }] };
+
+const cpuChart = new Chart(document.getElementById('cpuChart'), { type: 'line', data: cpuData, options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } } });
+const ramChart = new Chart(document.getElementById('ramChart'), { type: 'line', data: ramData, options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } } });
+const diskChart = new Chart(document.getElementById('diskChart'), { type: 'line', data: diskData, options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } } });
+
+// Update usage
+async function updateVPS() {
+  try {
+    const res = await fetch(`/server/stats/${containerId}`);
+    const data = await res.json();
+
+    // Update status once
+    const statusEl = document.getElementById("vps-status");
+    if (statusEl.textContent === "Loading") {
+      let bgClass;
+      switch(data.status) {
+        case "running": bgClass="bg-green-500"; break;
+        case "exited": bgClass="bg-red-500"; break;
+        case "node missing": bgClass="bg-yellow-500"; break;
+        case "error": bgClass="bg-orange-500"; break;
+        default: bgClass="bg-gray-500";
+      }
+      const statusMap = {
+        running: "Online",
+        exited: "Exited",
+        "node missing": "Node Missing",
+        error: "Error"
+      };
+
+      statusEl.textContent = data.status || "unknown";
+      statusEl.className = `inline-block text-white px-4 py-2 rounded bg-gray-500 font-semibold text-lg ${bgClass}`;
+    }
+
+    // Push new data points
+    function pushData(chart, value) {
+      chart.data.datasets[0].data.push(value);
+      chart.data.datasets[0].data.shift();
+      chart.update();
+    }
+
+    pushData(cpuChart, data.cpuPercent ?? 0);
+    pushData(ramChart, data.memoryMB ?? 0);
+    pushData(diskChart, data.diskUsageMB ?? 0);
+
+  } catch (err) {
+    console.error("Failed to fetch VPS stats:", err);
+  }
+}
+
+// Initial fetch and interval
+updateVPS();
+setInterval(updateVPS, 1000);
+</script>
+</body>
+</html>

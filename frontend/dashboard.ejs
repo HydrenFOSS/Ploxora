@@ -35,16 +35,22 @@
             <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
               <th class="px-4 py-3 rounded-l-lg">Server Name</th>
               <th class="px-4 py-3">SSH</th>
-              <th class="px-4 py-3 rounded-r-lg">Created At</th>
+              <th class="px-4 py-3">Created At</th>
+              <th class="px-4 py-2 rounded-r-lg">Status</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-neutral-700 text-gray-400">
             <% if (user.servers && user.servers.length > 0) { %>
               <% user.servers.forEach((server, index) => { %>
-                <tr class="hover:bg-neutral-850 transition">
+                <tr class="hover:bg-[#1f1f1f] rounded-full transition" data-container-id="<%= server.containerId %>">
                   <td class="px-4 py-3 font-medium text-gray-200"><%= server.name || "Empty" %></td>
                   <td class="px-4 py-3 text-gray-300"><%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %></td>
                   <td class="px-4 py-3 text-gray-400"><%= server.createdAt || "Now" %></td>
+                  <td class="px-4 py-3">
+                    <span class="server-status inline-block text-[10px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">
+                      Loading
+                    </span>
+                  </td>
                 </tr>
               <% }) %>
             <% } else { %>
@@ -61,5 +67,46 @@
   </div>
 
   <script>lucide.createIcons();</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const statusMap = {
+    running: "Online",
+    exited: "Exited",
+    "node missing": "Node Missing",
+    error: "Error"
+  };
+
+  const bgMap = {
+    running: "bg-green-500",
+    exited: "bg-red-500",
+    "node missing": "bg-yellow-500",
+    error: "bg-orange-500",
+    unknown: "bg-gray-500"
+  };
+
+  document.querySelectorAll("tr[data-container-id]").forEach(async row => {
+    const containerId = row.dataset.containerId;
+    const statusSpan = row.querySelector(".server-status");
+
+    // Redirect on click
+    row.style.cursor = "pointer";
+    row.addEventListener("click", () => {
+      window.location.href = `/vps/${containerId}`;
+    });
+
+    try {
+      const res = await fetch(`/server/stats/${containerId}`);
+      const data = await res.json();
+      const rawStatus = data.status || "unknown";
+
+      statusSpan.textContent = statusMap[rawStatus] || "Unknown";
+      statusSpan.className = `server-status inline-block text-[12px] font-semibold text-white px-2 py-1 rounded ${bgMap[rawStatus] || bgMap.unknown}`;
+    } catch {
+      statusSpan.textContent = "Error";
+      statusSpan.className = `server-status inline-block text-[12px] font-semibold text-white px-2 py-1 rounded ${bgMap.error}`;
+    }
+  });
+});
+</script>
 </body>
 </html>

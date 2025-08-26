@@ -122,30 +122,6 @@ router.get("/", async (req, res) => {
   res.render("login", { error: req.query.err || "", name });
 });
 
-// Dashboard page
-router.get("/dashboard", async (req, res) => {
-  const token = req.cookies["SESSION-COOKIE"];
-  if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
-  let count = 0;
-  for await (const _ of nodes.iterator()) {
-    count++;
-  }
-  const userId = await sessions.get(token);
-  if (!userId) {
-    res.clearCookie("SESSION-COOKIE");
-    return res.redirect("/?err=LOGIN-IN-FIRST");
-  }
-
-  const user = await users.get(userId);
-  if (!user) {
-    res.clearCookie("SESSION-COOKIE");
-    return res.redirect("/?err=LOGIN-IN-FIRST");
-  }
-
-  const name = await getAppName();
-  res.render('dashboard', { user, name, nodes: count });
-});
-
 // Discord auth routes
 router.get("/auth/discord", passport.authenticate("discord"));
 router.get("/auth/discord/callback",
