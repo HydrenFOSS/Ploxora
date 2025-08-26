@@ -5,10 +5,11 @@ const Keyv = require("keyv");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
-const logger = new Logger({ prefix: "Ploxora", level: "debug" });
+const logger = new Logger({ prefix: "Ploxora-Users-Router", level: "debug" });
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
 const nodes = new Keyv(process.env.NODES_DB || 'sqlite://nodes.sqlite');
+const serversDB = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
 
 async function requireLogin(req, res, next) {
   try {
@@ -145,6 +146,12 @@ router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
       .json({ error: "Failed to fetch stats", details: err.message });
   }
 });
+async function getServerByContainerId(containerId) {
+  for await (const [id, server] of serversDB.iterator()) {
+    if (server.containerId === containerId) return { id, server };
+  }
+  return null;
+}
 
 router.get("/vps/:containerId", requireLogin, async (req, res) => {
   try {
@@ -158,6 +165,119 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
   } catch (err) {
     logger.error("VPS page error:", err);
     res.status(500).send("Failed to load VPS page.");
+  }
+});
+
+// Generic VPS action route
+router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) => {
+  try {
+    const { containerId, action } = req.params;
+    logger.info('I just need to execute a action called '+ action)
+    const allowedActions = ["start", "stop", "restart"];
+
+    if (!allowedActions.includes(action)) {
+      return res.status(400).json({ error: "Invalid action. allowed is: start, stop, restart" });
+    }
+
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+    if (!req.user.servers?.some(s => s.id === serverId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const node = await nodes.get(server.node);
+    if (!node) return res.status(500).json({ error: "Node not found" });
+
+    const response = await fetch(
+      `http://${node.address}:${node.port}/action/${action}/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`,
+      { method: "POST" }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      return res.status(response.status).json({ error: "Node request failed", details: text });
+    }
+
+    res.json({ containerId, action, message: `Container ${action}ed successfully` });
+  } catch (err) {
+    logger.error("[VPS Action] error:", err);
+    res.status(500).json({ error: "Failed to perform action", details: err.message });
+  }
+});
+
+router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+
+    if (!containerId) return res.status(400).json({ error: "Missing containerId" });
+
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+
+    if (!req.user.servers?.some(s => s.id === serverId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const node = await nodes.get(server.node);
+    if (!node) return res.status(500).json({ error: "Node not found" });
+
+
+    // Check container status
+    const statusResp = await fetch(
+      `http://${node.address}:${node.port}/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`
+    );
+    if (!statusResp.ok) {
+      const text = await statusResp.text();
+      return res.status(statusResp.status).json({ error: "Failed to fetch container status", details: text });
+    }
+
+    const statusData = await statusResp.json();
+
+    // Fetch SSH info safely
+    let sshData = { ssh: "N/A" };
+    try {
+      const sshResp = await fetch(
+        `http://${node.address}:${node.port}/ressh?x-verification-key=${encodeURIComponent(node.token)}`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ containerId }) }
+      );
+
+      if (!sshResp.ok) {
+        const text = await sshResp.text();
+        console.error("[Ressh] Node returned error:", sshResp.status, text);
+        return res.status(sshResp.status).json({ error: "Node request failed", details: text });
+      }
+
+      const rawText = await sshResp.text();
+      if (rawText) {
+        try {
+          sshData = JSON.parse(rawText);
+        } catch {
+          sshData = { ssh: rawText };
+        }
+      }
+
+    } catch (e) {
+      console.error("[Ressh] Node request failed:", e);
+      return res.status(500).json({ error: "Node request failed", details: e.message });
+    }
+
+    // Update DB
+    server.ssh = sshData.ssh || "N/A";
+    await serversDB.set(serverId, server);
+
+    const userServer = req.user.servers.find(s => s.id === serverId);
+    if (userServer) userServer.ssh = server.ssh;
+    await users.set(req.user.id, req.user);
+
+    res.json({ containerId, action: "ressh", ssh: server.ssh, message: "SSH info updated successfully" });
+
+  } catch (err) {
+    logger.error("[Ressh] VPS ressh error:", err);
+    res.status(500).json({ error: "Failed to perform action", details: err.message });
   }
 });
 
