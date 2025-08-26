@@ -1,66 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('components/head') %>
+<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
 
-<body class="min-h-screen text-white relative flex flex-col">
+  <!-- Sidebar -->
+  <%- include('components/sidebar.ejs') %>
 
- <div class="absolute inset-0 flex flex-col">
-  <!-- Top gradient -->
-  <div class="h-1/2 bg-gradient-to-b from-[#000000] to-[#111111]"></div>
-  <!-- Bottom gradient -->
-  <div class="h-1/2 bg-gradient-to-b from-[#111111] to-[#000000]"></div>
-</div>
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+    <!-- Navbar -->
+    <%- include('components/nav.ejs') %>
 
-  <!-- Navbar -->
-  <%- include('components/nav.ejs') %>
-
-  <div class="flex flex-1 relative z-10">
-
-    <%- include('components/sidebar.ejs') %>
-
-    <!-- Main content -->
-    <main class="flex-1 p-6 space-y-8">
+    <!-- Page Content -->
+    <main class="p-6 grid grid-cols-1 gap-6">
 
       <!-- Header -->
-      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
-        <h1 class="text-3xl font-bold text-gray-100">Settings ⚙️</h1>
+      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+           <i data-lucide="settings" class="w-6 h-6"></i>
+            Settings
+        </h1>
         <p class="text-gray-400 mt-2">Manage your account preferences and security.</p>
       </div>
 
       <!-- Account Settings -->
-      <section class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-4">
-        <h2 class="text-xl font-semibold text-gray-200 mb-2">Account Information</h2>
+      <section class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-4">
+        <h2 class="text-lg font-semibold text-white mb-2">Account Information</h2>
         <form action="/settings/update-profile" method="POST" class="space-y-4">
-         <div>
-  <label class="block text-gray-400 mb-1">Username</label>
-  <input type="text" name="username" value="<%= user.username %>" 
-    disabled
-    class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-gray-400 cursor-not-allowed">
-</div>
+          <div>
+            <label class="block text-gray-400 mb-1">Username</label>
+            <input type="text" name="username" value="<%= user.username %>" 
+              disabled
+              class="w-full px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-gray-400 cursor-not-allowed">
+          </div>
 
-<div>
-  <label class="block text-gray-400 mb-1">Email</label>
-  <input type="email" name="email" value="<%= user.email %>" 
-    disabled
-    class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-gray-400 cursor-not-allowed">
-</div>
-
+          <div>
+            <label class="block text-gray-400 mb-1">Email</label>
+            <input type="email" name="email" value="<%= user.email %>" 
+              disabled
+              class="w-full px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-gray-400 cursor-not-allowed">
+          </div>
         </form>
       </section>
 
       <!-- Danger Zone -->
-      <section class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
-        <h2 class="text-xl font-semibold text-red-500 mb-2">Danger Zone</h2>
+      <section class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+        <h2 class="text-lg font-semibold text-red-500 mb-2">Danger Zone</h2>
         <p class="text-gray-400 mb-4">Deleting your account is permanent and cannot be undone.</p>
-        <form action="/settings/delete-account" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
-          <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition shadow-md">Delete Account</button>
+        <form action="/settings/delete-account" method="POST" 
+          onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
+          <button type="submit" 
+            class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition shadow-md font-medium">
+            Delete Account
+          </button>
         </form>
       </section>
 
     </main>
   </div>
 
-  <%- include('components/footer.ejs') %>
-
+  <script>lucide.createIcons();</script>
 </body>
 </html>

@@ -147,8 +147,7 @@ async function ensureDefaultSettings() {
     NAME: process.env.APP_NAME || "Ploxora",
     IsLogs: false,
     ifisLogs: "",
-    Logo: "",
-    Theme: ""
+    Logo: ""
   };
 
   // Only set missing keys
@@ -260,11 +259,14 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
       let status = "Offline";
 
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+
         const response = await fetch(
           `http://${value.address}:${value.port}/checkdockerrunning?x-verification-key=${value.token}`,
-          { timeout: 3000 }
+          { signal: controller.signal }
         );
-
+        clearTimeout(timeout);
         if (response.ok) {
           const data = await response.json();
           if (data.docker === "running") {
