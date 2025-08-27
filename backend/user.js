@@ -168,6 +168,7 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
   }
 });
 
+
 // Generic VPS action route
 router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) => {
   try {
@@ -281,4 +282,5 @@ router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
   }
 });
 
-module.exports = router;
+const ploxora_route = "User Pages | Author: ma4z | V1"
+module.exports = { router,ploxora_route };

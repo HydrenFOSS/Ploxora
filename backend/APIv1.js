@@ -276,4 +276,5 @@ router.post("/api/v1/users/delete", checkApiKey, async (req, res) => {
   }
 });
 
-module.exports = router;
+const ploxora_route = "API | Author: ma4z | V1"
+module.exports = { router,ploxora_route };

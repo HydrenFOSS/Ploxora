@@ -1,11 +1,12 @@
 const router = require("express").Router();
 const Logger = require("../utilities/logger");
 const logDiscord = require("../utilities/discordLogging");
-const logger = new Logger({ prefix: "Ploxora", level: "debug" });
+const logger = new Logger({ prefix: "Ploxora-Admin-Router", level: "debug" });
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Keyv = require("keyv");
+const package = require("../package.json")
 const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
 const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
@@ -56,7 +57,7 @@ async function requireAdmin(req, res, next) {
   const user = await users.get(userId);
   const isAdmin = adminEmails.includes(user.email.toLowerCase());
   if (!isAdmin) {
-    return res.status(403).send("Access denied: Admins only");
+    return res.redirect('/')
   }
 
   next();
@@ -86,7 +87,11 @@ async function requireLogin(req, res, next) {
     res.redirect("/?err=AUTH-FAILED");
   }
 }
-router.get("/admin/node/:id", requireAdmin, async (req, res) => {
+
+router.get("/admin/overview", requireAdmin, requireLogin, async (req, res) => {
+  res.render("admin/overview", { name: await getAppName(), user: req.user, version: package.version, })
+});
+router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
 
@@ -142,23 +147,7 @@ router.get("/admin/node/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Error loading node details" });
   }
 });
-async function ensureDefaultSettings() {
-  const defaultSettings = {
-    NAME: process.env.APP_NAME || "Ploxora",
-    IsLogs: false,
-    ifisLogs: "",
-    Logo: ""
-  };
 
-  // Only set missing keys
-  for (const key in defaultSettings) {
-    const existing = await settings.get(key);
-    if (existing === undefined || existing === null) {
-      await settings.set(key, defaultSettings[key]);
-    }
-  }
-}
-ensureDefaultSettings().catch(err => console.error("Failed to initialize settings:", err));
 const upload = multer({ storage });
 // Route to upload logo
 router.post("/admin/settings/upload-logo", requireLogin, requireAdmin, upload.single("Logo"), async (req, res) => {
@@ -517,7 +506,111 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
     res.redirect("/admin/nodes?err=FAILED-CREATE");
   }
 });
+router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const node = await nodes.get(nodeId);
 
+    if (!node) {
+      return res.status(404).send("Node not found");
+    }
+
+    // --- Node Docker Status ---
+    let status = "Offline";
+    try {
+      const response = await fetch(
+        `http://${node.address}:${node.port}/checkdockerrunning?x-verification-key=${node.token}`,
+        { timeout: 3000 }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        status = data.docker === "running" ? "Online" : "Offline";
+      }
+    } catch (err) {
+      logger.error(`Health check failed for node ${nodeId}:`, err.message);
+      status = "Offline";
+    }
+
+    // --- Update DB if status changed ---
+    if (node.status !== status) {
+      node.status = status;
+      await nodes.set(nodeId, node);
+    }
+
+    // --- Collect servers assigned to this node ---
+    const allServers = [];
+    for await (const [key, server] of servers.iterator()) {
+      if (server.node === nodeId) {
+        allServers.push({ id: key, ...server });
+      }
+    }
+
+    // --- Render page ---
+    res.render("admin/node", {
+      name: await getAppName(),
+      user: {
+        ...req.user,
+        admin: adminEmails.includes(req.user.email.toLowerCase()),
+      },
+      req,
+      node: {
+        ...node,
+        status,
+      },
+      servers: allServers // pass servers to template
+    });
+
+  } catch (err) {
+    logger.error("Error in /admin/node/:id:", err);
+    res.status(500).send("Failed to fetch node info");
+  }
+});
+router.get("/admin/node/:id/docker-usage", requireAdmin, async (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const node = await nodes.get(nodeId);
+
+    if (!node) {
+      return res.status(404).json({ error: "Node not found" });
+    }
+
+    let usageData = {
+      totalCPU: 0,
+      totalMemoryUsedMB: 0,
+      totalDiskMB: 0
+    };
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); 
+
+      const response = await fetch(
+        `http://${node.address}:${node.port}/docker-usage?x-verification-key=${node.token}`,
+        { signal: controller.signal }
+      );
+
+      clearTimeout(timeout);
+
+      if (response.ok) {
+        usageData = await response.json();
+      } else {
+        logger.error(`Failed to fetch Docker usage from node ${nodeId}: ${response.statusText}`);
+      }
+    } catch (err) {
+      logger.error(`Error fetching Docker usage from node ${nodeId}: ${err.message}`);
+    }
+
+    res.json({
+      success: true,
+      nodeId,
+      usage: usageData
+    });
+  } catch (err) {
+    logger.error("Error in /admin/node/:id/docker-usage:", err);
+    res.status(500).json({ error: "Failed to fetch Docker usage" });
+  }
+});
 router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
   try {
     const allUsers = [];
@@ -579,5 +672,5 @@ router.post("/admin/users/delete/:id", requireAdmin, async (req, res) => {
     res.status(500).send("Failed to delete user");
   }
 });
-
-module.exports = router;
+const ploxora_route = "Admin | Author: ma4z | V1"
+module.exports = { router,ploxora_route };

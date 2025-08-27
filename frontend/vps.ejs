@@ -15,50 +15,62 @@
 
     <!-- VPS Dashboard -->
     <main class="p-6 flex flex-col space-y-6">
-    <div class="flex flex-col md:flex-row md:justify-between md:items-center bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
 
-  <!-- Left: Name + SSH -->
-  <div class="flex flex-col md:flex-row md:items-center md:space-x-6 mb-4 md:mb-0 w-full md:w-auto">
-    <h1 class="text-3xl font-bold text-gray-200 mb-2 md:mb-0">
-      <%= server.name || "Unnamed VPS" %>
-    </h1>
+      <!-- Server Info -->
+      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+        <h1 class="text-3xl font-bold text-gray-200">
+          <%= server.name || "Unnamed VPS" %>
+        </h1>
 
-    <!-- SSH Info -->
-    <div class="text-gray-300 text-sm md:text-base flex items-center space-x-2 overflow-x-auto">
-      <span class="font-semibold">SSH:</span>
-      <% if (server.ssh) { %>
-        <span class="inline-block px-3 py-1 bg-neutral-700 rounded text-green-400 font-mono whitespace-nowrap">
-          <%= server.ssh.replace(/^ssh session:\s*/i, '' ) %>
-        </span>
-      <% } else { %>
-        <span class="inline-block px-3 py-1 bg-neutral-700 rounded text-gray-500 italic">N/A</span>
-      <% } %>
-    </div>
-  </div>
+        <!-- SSH -->
+        <div class="flex items-center space-x-2 text-sm md:text-base">
+          <span class="font-semibold">SSH:</span>
+          <% if (server.ssh) { %>
+            <span class="px-3 py-1 bg-neutral-700 rounded text-green-400 font-mono whitespace-nowrap">
+              <%= server.ssh.replace(/^ssh session:\s*/i, '' ) %>
+            </span>
+          <% } else { %>
+            <span class="px-3 py-1 bg-neutral-700 rounded text-gray-500 italic">N/A</span>
+          <% } %>
+        </div>
 
-  <!-- Right: Status + Buttons -->
-  <div class="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
-    <!-- VPS Status -->
-    <span id="vps-status"
-      class="inline-block text-white px-4 py-2 rounded font-semibold text-lg bg-gray-500 md:mr-2">
-      Loading
-    </span>
+        <!-- Uptime -->
+        <div class="flex items-center space-x-2 text-sm md:text-base">
+          <span class="font-semibold">Uptime:</span>
+          <span id="uptime-display" class="px-3 py-1 bg-neutral-700 rounded text-blue-400 font-mono whitespace-nowrap">
+            Loading...
+          </span>
+        </div>
 
-    <!-- Action Buttons -->
-    <div class="flex space-x-2">
-      <button id="btn-ressh"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold">Ressh</button>
-      <button id="btn-start"
-        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold hidden">Start</button>
-      <button id="btn-stop"
-        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold hidden">Stop</button>
-      <button id="btn-restart"
-        class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 font-semibold hidden">Restart</button>
-    </div>
-  </div>
+        <!-- Status -->
+        <div class="flex items-center space-x-2 text-sm md:text-base">
+          <span class="font-semibold">Status:</span>
+          <span id="vps-status" class="px-4 py-2 rounded font-semibold text-lg bg-gray-500 text-white">
+            Loading
+          </span>
+        </div>
+      </div>
 
-</div>
+      <!-- Controls -->
+      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+        <h2 class="text-xl font-semibold text-gray-200">Controls</h2>
+        <div class="flex flex-wrap gap-3">
+          <button id="btn-ressh"
+            class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition disabled:opacity-50">Ressh</button>
+          <button id="btn-start"
+            class="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition disabled:opacity-50">Start</button>
+          <button id="btn-stop"
+            class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition disabled:opacity-50">Stop</button>
+          <button id="btn-restart"
+            class="px-5 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold transition disabled:opacity-50">Restart</button>
+        </div>
 
+        <!-- Logs -->
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold text-gray-200 mb-2">Logs</h3>
+          <div id="logContainer" class="bg-neutral-900 border border-[#2a2a2a] rounded-lg p-3 h-60 overflow-y-auto font-mono text-sm space-y-1"></div>
+        </div>
+      </div>
 
       <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -88,7 +100,7 @@
 const containerId = "<%= server.containerId %>";
 
 // Chart.js setup
-const labels = Array(20).fill(''); // 20 points
+const labels = Array(20).fill('');
 const cpuData = { labels, datasets: [{ label: 'CPU %', data: Array(20).fill(0), borderColor: 'rgb(34,197,94)', backgroundColor: 'rgba(34,197,94,0.2)', tension: 0.3 }] };
 const ramData = { labels, datasets: [{ label: 'RAM MB', data: Array(20).fill(0), borderColor: 'rgb(59,130,246)', backgroundColor: 'rgba(59,130,246,0.2)', tension: 0.3 }] };
 const diskData = { labels, datasets: [{ label: 'Disk MB', data: Array(20).fill(0), borderColor: 'rgb(245,158,11)', backgroundColor: 'rgba(245,158,11,0.2)', tension: 0.3 }] };
@@ -97,26 +109,56 @@ const cpuChart = new Chart(document.getElementById('cpuChart'), { type: 'line', 
 const ramChart = new Chart(document.getElementById('ramChart'), { type: 'line', data: ramData, options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } } });
 const diskChart = new Chart(document.getElementById('diskChart'), { type: 'line', data: diskData, options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } } });
 
-// Action buttons
+// Buttons
 const btnRessh = document.getElementById("btn-ressh");
 const btnStart = document.getElementById("btn-start");
 const btnStop = document.getElementById("btn-stop");
 const btnRestart = document.getElementById("btn-restart");
 
+// --- Logs ---
+const logContainer = document.getElementById('logContainer');
+const logColors = {
+  INFO: '#d4d4d4',
+  ACTION: '#38bdf8',
+  ERROR: '#ef4444',
+  SUCCESS: '#10b981'
+};
+function addLog(type, message) {
+  const line = document.createElement('div');
+  line.classList.add("flex","items-center","gap-2");
+  const badge = document.createElement('span');
+  badge.textContent = type;
+  badge.className = "px-2 py-0.5 text-xs font-semibold uppercase rounded";
+  badge.style.color = logColors[type] || "#d4d4d4";
+  badge.style.backgroundColor = hexToAlpha(logColors[type] || "#d4d4d4", 0.1);
+  const text = document.createElement('span');
+  text.textContent = message;
+  line.appendChild(badge);
+  line.appendChild(text);
+  logContainer.appendChild(line);
+  logContainer.scrollTop = logContainer.scrollHeight;
+}
+function hexToAlpha(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function updateActionButtons(status) {
-  btnStart.classList.add("hidden");
-  btnStop.classList.add("hidden");
-  btnRestart.classList.add("hidden");
+  btnStart.disabled = true;
+  btnStop.disabled = true;
+  btnRestart.disabled = true;
 
   if (status === "running") {
-    btnStop.classList.remove("hidden");
-    btnRestart.classList.remove("hidden");
+    btnStop.disabled = false;
+    btnRestart.disabled = false;
   } else if (status === "exited") {
-    btnStart.classList.remove("hidden");
+    btnStart.disabled = false;
   }
 }
 
-// Fetch VPS stats and update charts
+// Fetch VPS stats
 async function updateVPS() {
   try {
     const res = await fetch(`/server/stats/${containerId}`);
@@ -133,12 +175,15 @@ async function updateVPS() {
       default: bgClass="bg-gray-500";
     }
     statusEl.textContent = data.status || "unknown";
-    statusEl.className = `inline-block text-white px-4 py-2 rounded font-semibold text-lg ${bgClass}`;
+    statusEl.className = `px-4 py-2 rounded font-semibold text-lg text-white ${bgClass}`;
 
-    // Update action buttons
+    // Update uptime
+    document.getElementById("uptime-display").textContent = data.uptime || "N/A";
+
+    // Update buttons
     updateActionButtons(data.status);
 
-    // Push new data points
+    // Push chart data
     function pushData(chart, value) {
       chart.data.datasets[0].data.push(value);
       chart.data.datasets[0].data.shift();
@@ -153,43 +198,40 @@ async function updateVPS() {
   }
 }
 
-// Initial fetch + interval
+// Poll every 2s
 updateVPS();
-setInterval(updateVPS, 5000);
+setInterval(updateVPS, 2000);
 
+// Ressh
 btnRessh.addEventListener("click", async () => {
+  addLog("ACTION","Fetching SSH session...");
   btnRessh.disabled = true;
   btnRessh.textContent = "Fetching SSH...";
   try {
     const res = await fetch(`/vps/ressh/${containerId}`, { method: "POST" });
-    const text = await res.text();
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { ssh: text || "N/A" };
-    }
-
-    window.location.reload()
+    await res.text();
+    addLog("SUCCESS","SSH session refreshed.");
+    window.location.reload();
   } catch (err) {
+    addLog("ERROR","Failed to fetch SSH info.");
     console.error("Ressh fetch error:", err);
-    alert("Failed to fetch SSH info");
   } finally {
     btnRessh.disabled = false;
     btnRessh.textContent = "Ressh";
   }
 });
-
-
+lucide.createIcons();
+// Actions
 async function performAction(action) {
+  addLog("INFO", "Connecting to the daemon");
+  addLog("ACTION",`${action.charAt(0).toUpperCase()+action.slice(1)}ing server...`);
   try {
     const res = await fetch(`/vps/action/${containerId}/${action}`, { method: "POST" });
     const data = await res.json();
-    alert(data.message);
+    addLog("SUCCESS", data.message || `${action} completed`);
   } catch (err) {
     console.error(err);
-    alert(`Failed to ${action} container`);
+    addLog("ERROR", `Failed to ${action} server`);
   }
 }
 

@@ -3,22 +3,38 @@ const fs = require("fs");
 const express = require("express");
 const app = express();
 const path = require("path");
+const Keyv = require("keyv");
 const cookieParser = require("cookie-parser");
 const Logger = require("./utilities/logger");
 const { minify } = require("html-minifier-terser");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
-// Set up EJS
+const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/frontend"));
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use((req, res, next) => {
-  const render = res.render;
-  res.render = function (view, options, callback) {
-    render.call(this, view, options, async (err, html) => {
-      if (err) return res.status(500).send("Render Error");
+  const originalRender = res.render;
+
+  res.render = function (view, options = {}, callback) {
+    originalRender.call(this, view, options, async (err, html) => {
+      if (err) {
+        return originalRender.call(
+          res,
+          "500",
+          {
+            ...options,
+            err: process.env.NODE_ENV === "development" ? (err.stack || err.message) : null
+          },
+          (fallbackErr, errorHtml) => {
+            if (fallbackErr) {
+              return res.status(500).send("Render Error: " + fallbackErr);
+            }
+            res.status(500).send(errorHtml);
+          }
+        );
+      }
 
       try {
         const minified = await minify(html, {
@@ -27,34 +43,63 @@ app.use((req, res, next) => {
           minifyCSS: true,
           minifyJS: true,
         });
-
         res.send(minified);
       } catch (e) {
-        res.send(html); // fallback if minify fails
+        res.send(html);
       }
     });
   };
+
   next();
 });
+
 // Middleware to add custom header
 app.use((req, res, next) => {
   res.setHeader("X-Powered-By", "Hydren || Ploxora");
   next();
 });
 app.use(cookieParser());
-// Load all route files from ./backend (only .js files)
+async function ensureDefaultSettings() {
+  const defaultSettings = {
+    NAME: process.env.APP_NAME || "Ploxora",
+    IsLogs: false,
+    ifisLogs: "",
+    Logo: ""
+  };
+
+  // Only set missing keys
+  for (const key in defaultSettings) {
+    const existing = await settings.get(key);
+    if (existing === undefined || existing === null) {
+      await settings.set(key, defaultSettings[key]);
+    }
+  }
+}
+ensureDefaultSettings().catch(err => console.error("Failed to initialize settings:", err));
+async function getAppName() {
+  const appName = await settings.get("NAME");
+  return appName;
+}
+const loadedRoutes = []; // keep track here
+
+// Load backend routes
 const routeFiles = fs.readdirSync("./backend").filter(file => file.endsWith(".js"));
 
 for (const file of routeFiles) {
-  const route = require(`./backend/${file}`);
-  app.use("/", route); // mount route at root
+  const routeModule = require(path.join(__dirname, "backend", file));
+
+  const router = routeModule.router || routeModule;
+  const name = routeModule.ploxora_route || file.replace(".js", "");
+
+  app.use("/", router);
+  loadedRoutes.push(name);
 }
 
 // 404 handler
-app.use((req, res) => {
+app.use(async (req, res) => {
   res.status(404).render("404", {
     req,
-    name: process.env.APP_NAME || "Ploxora",
+    name: await getAppName(),
   });
 });
 
@@ -69,4 +114,11 @@ const asciiart = `
 
 const PORT = process.env.APP_PORT || 3000;
 console.log(asciiart)
-app.listen(PORT, () => logger.init(`Ploxora has been started on ${PORT}!`));
+app.listen(PORT, () => {
+  logger.init(`Ploxora has been started on port ${PORT}!`);
+
+  // Log loaded routes AFTER server started
+  loadedRoutes.forEach(r => {
+    logger.init(`Loaded Route - ${r}`);
+  });
+});

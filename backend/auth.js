@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const Keyv = require("keyv");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
-const logger = new Logger({ prefix: "Ploxora", level: "debug" });
+const logger = new Logger({ prefix: "Ploxora-Auth-Router", level: "debug" });
 const router = express.Router();
 const bcrypt = require("bcrypt");
 
@@ -254,4 +254,5 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+const ploxora_route = "Authentication | Author: ma4z | V1"
+module.exports = { router,ploxora_route };
