@@ -14,18 +14,40 @@
 
 
   <nav class="space-y-3">
+    <% if (user.admin) { %>
     <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+      <i data-lucide="arrow-left" class="w-5 h-5"></i> Go Back
+    </a>
+     <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="table-of-contents" class="w-5 h-5"></i> Overview
     </a>
 
-    <a href="/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-      <i data-lucide="settings" class="w-5 h-5"></i> Settings
+    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="shield" class="w-5 h-5"></i> Settings
     </a>
-<% addons.forEach(a => { %>
+    
+    <a href="/admin/nodes" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="server" class="w-5 h-5"></i> Nodes
+    </a>
+
+    <a href="/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="users" class="w-5 h-5"></i> Users
+    </a>
+
+    <a href="/admin/servers" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="database" class="w-5 h-5"></i> VPS Instances
+    </a>
+     <a href="/admin/addons" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+      <i data-lucide="puzzle" class="w-5 h-5"></i> Addons
+    </a>
+  <div class="px-4 pt-4">
+    <span class="text-xs font-semibold tracking-wide text-gray-500">---------- ADDONS ----------</span>
+  </div>
+    <% addons.forEach(a => { %>
   <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0 && a.paths && a.paths.length > 0) { %>
     <% a.sidebar.forEach((s, i) => { %>
-      <% if (s.for === "user" && a.paths[i]) { %>
-        <a href="<%= a.paths[i] %>"
+      <% if (s.for === "admin" && a.paths[i]) { %>
+        <a href="<%= a.paths[i] %>" 
            class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
           <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
           <%= s.text || a.name %>
@@ -34,11 +56,8 @@
     <% }) %>
   <% } %>
 <% }) %>
-<% if (user.admin) { %>
-   <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-      <i data-lucide="user-star" class="w-5 h-5"></i> Admin
-    </a>
-<% } %>
+        <% } %>
+
   </nav>
 
   <div class="mt-auto pt-6 border-t border-neutral-800">

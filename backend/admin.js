@@ -13,6 +13,7 @@ const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite")
 const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
 const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
 const crypto = require("crypto");
+const addonManager = require("../addons/addon_manager");
 
 const adminEmails = (process.env.ADMIN_USERS || "")
   .split(",")
@@ -89,7 +90,7 @@ async function requireLogin(req, res, next) {
 }
 
 router.get("/admin/overview", requireAdmin, requireLogin, async (req, res) => {
-  res.render("admin/overview", { name: await getAppName(), user: req.user, version: package.version, })
+  res.render("admin/overview", { name: await getAppName(), user: req.user, version: package.version, addons: addonManager.loadedAddons })
 });
 router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
   try {
@@ -178,6 +179,7 @@ router.get("/admin/settings", requireLogin, requireAdmin, async (req, res) => {
       settings: allSettings,
       req,
       logoExists,
+      addons: addonManager.loadedAddons
     });
   } catch (err) {
     logger.error("Error loading settings:", err);
@@ -281,6 +283,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
       user: req.user,
       nodes: allNodes,
       req,
+      addons: addonManager.loadedAddons
     });
   } catch (err) {
     logger.error("Error loading nodes:", err);
@@ -313,6 +316,7 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
       users: allUsers,
       nodes: allNodes,
       req,
+      addons: addonManager.loadedAddons
     });
   } catch (err) {
     res.status(500).send("Error loading servers");
@@ -558,7 +562,8 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
         ...node,
         status,
       },
-      servers: allServers // pass servers to template
+      servers: allServers,
+      addons: addonManager.loadedAddons
     });
 
   } catch (err) {
@@ -623,6 +628,7 @@ router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
       users: allUsers,
       req,
       user: req.user,
+      addons: addonManager.loadedAddons
     });
   } catch (err) {
     logger.error("Error fetching users:", err);

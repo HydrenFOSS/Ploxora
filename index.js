@@ -1,19 +1,24 @@
 require("dotenv").config();
 const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const app = express();
-const path = require("path");
 const Keyv = require("keyv");
 const cookieParser = require("cookie-parser");
 const Logger = require("./utilities/logger");
 const { minify } = require("html-minifier-terser");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
+
+// --- Express setup ---
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/frontend"));
 app.use(express.static(path.join(__dirname, "public")));
+
+// --- Custom render middleware with minify ---
 app.use((req, res, next) => {
   const originalRender = res.render;
 
@@ -28,9 +33,7 @@ app.use((req, res, next) => {
             err: process.env.NODE_ENV === "development" ? (err.stack || err.message) : null
           },
           (fallbackErr, errorHtml) => {
-            if (fallbackErr) {
-              return res.status(500).send("Render Error: " + fallbackErr);
-            }
+            if (fallbackErr) return res.status(500).send("Render Error: " + fallbackErr);
             res.status(500).send(errorHtml);
           }
         );
@@ -49,16 +52,16 @@ app.use((req, res, next) => {
       }
     });
   };
-
   next();
 });
 
-// Middleware to add custom header
+// --- Middleware header ---
 app.use((req, res, next) => {
   res.setHeader("X-Powered-By", "Hydren || Ploxora");
   next();
 });
-app.use(cookieParser());
+
+// --- Ensure default settings ---
 async function ensureDefaultSettings() {
   const defaultSettings = {
     NAME: process.env.APP_NAME || "Ploxora",
@@ -66,8 +69,6 @@ async function ensureDefaultSettings() {
     ifisLogs: "",
     Logo: ""
   };
-
-  // Only set missing keys
   for (const key in defaultSettings) {
     const existing = await settings.get(key);
     if (existing === undefined || existing === null) {
@@ -76,18 +77,43 @@ async function ensureDefaultSettings() {
   }
 }
 ensureDefaultSettings().catch(err => console.error("Failed to initialize settings:", err));
-async function getAppName() {
-  const appName = await settings.get("NAME");
-  return appName;
-}
-const loadedRoutes = []; // keep track here
 
-// Load backend routes
+async function getAppName() {
+  return await settings.get("NAME");
+}
+
+// --- Load Addons globally ---
+const addonManager = require("./addons/addon_manager");
+addonManager.loadAddons(); // load and init all addons
+function attachRouters(app) {
+  if (!app._router) {
+    // nothing mounted yet, just mount new ones
+    addonManager.getRouters().forEach(r => app.use("/", r));
+    return;
+  }
+  app._router.stack = app._router.stack.filter(layer => {
+    return !(layer.name === "router" && layer.handle.__addon);
+  });
+  addonManager.getRouters().forEach(r => {
+    app.use("/", r);
+  });
+}
+// Make it available to admin actions
+app.set("attachRouters", () => attachRouters(app));
+// Register all addon routers globally
+addonManager.loadedAddons.forEach(addon => {
+  app.use("/", addon.router);
+});
+
+// Register admin addon route
+app.use("/", addonManager.router);
+
+// --- Load backend routes ---
+const loadedRoutes = [];
 const routeFiles = fs.readdirSync("./backend").filter(file => file.endsWith(".js"));
 
 for (const file of routeFiles) {
   const routeModule = require(path.join(__dirname, "backend", file));
-
   const router = routeModule.router || routeModule;
   const name = routeModule.ploxora_route || file.replace(".js", "");
 
@@ -95,7 +121,7 @@ for (const file of routeFiles) {
   loadedRoutes.push(name);
 }
 
-// 404 handler
+// --- 404 handler ---
 app.use(async (req, res) => {
   res.status(404).render("404", {
     req,
@@ -103,6 +129,7 @@ app.use(async (req, res) => {
   });
 });
 
+// --- Start server ---
 const asciiart = `
   _____  _                          
  |  __ \\| |                         
@@ -113,12 +140,10 @@ const asciiart = `
 `;
 
 const PORT = process.env.APP_PORT || 3000;
-console.log(asciiart)
+console.log(asciiart);
+
 app.listen(PORT, () => {
   logger.init(`Ploxora has been started on port ${PORT}!`);
-
-  // Log loaded routes AFTER server started
-  loadedRoutes.forEach(r => {
-    logger.init(`Loaded Route - ${r}`);
-  });
+  loadedRoutes.forEach(r => logger.init(`Loaded Route - ${r}`));
+  addonManager.loadedAddons.forEach(a => logger.init(`Loaded Addon - ${a.name} v${a.version}`));
 });

@@ -1,0 +1,33 @@
+{
+  "name": "Example Plugin",
+  "description": "This is an example addon.",
+  "author": "Your Name",
+  "version": "1.0.0",
+  "main": "index.js",
+  "status": "enabled",
+  "sidebar": [
+    {
+      "icon": "Activity",
+      "text": "Example",
+      "for": "user",
+      "_note1": "there are user/admin/vps"
+    },
+    {
+      "icon": "Activity",
+      "text": "Example1",
+      "for": "admin",
+      "_note1": "there are user/admin/vps"
+    },
+    {
+      "icon": "Activity",
+      "text": "Example2",
+      "for": "vps",
+      "_note1": "there are user/admin/vps"
+    }
+  ],
+  "paths": [
+    "/example",
+    "/example1",
+    "/example2"
+  ]
+}

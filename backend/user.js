@@ -59,12 +59,13 @@ router.get("/", async (req, res) => {
   const name = await getAppName();
   res.render("login", { error: req.query.err || "", name });
 });
+const addonManager = require("../addons/addon_manager");
 
 router.get('/settings', requireLogin, async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   const userId = await sessions.get(token);
   const user = await users.get(userId);
-  res.render("settings", { user, name: await getAppName() })
+  res.render("settings", { user, name: await getAppName(), addons: addonManager.loadedAddons})
 });
 
 // Delete account (unlink from your app, not Discord itself)
@@ -106,7 +107,7 @@ router.get("/dashboard", async (req, res) => {
   }
 
   const name = await getAppName();
-  res.render('dashboard', { user, name, nodes: count });
+  res.render('dashboard', { user, name, nodes: count, addons: addonManager.loadedAddons });
 });
 
 router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
@@ -161,7 +162,7 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
     if (!server) {
       return res.status(403).send("You do not have access to this VPS.");
     }
-    res.render("vps", { user, server, name: await getAppName() });
+    res.render("vps", { user, server, name: await getAppName(), addons: addonManager.loadedAddons });
   } catch (err) {
     logger.error("VPS page error:", err);
     res.status(500).send("Failed to load VPS page.");
