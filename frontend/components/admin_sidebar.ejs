@@ -43,11 +43,11 @@
   <div class="px-4 pt-4">
     <span class="text-xs font-semibold tracking-wide text-gray-500">---------- ADDONS ----------</span>
   </div>
-    <% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0 && a.paths && a.paths.length > 0) { %>
-    <% a.sidebar.forEach((s, i) => { %>
-      <% if (s.for === "admin" && a.paths[i]) { %>
-        <a href="<%= a.paths[i] %>" 
+ <% addons.forEach(a => { %>
+  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+    <% a.sidebar.forEach(s => { %>
+      <% if (s.for === "admin") { %>
+        <a href="<%= s.path %>" 
            class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
           <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
           <%= s.text || a.name %>
@@ -56,6 +56,7 @@
     <% }) %>
   <% } %>
 <% }) %>
+
         <% } %>
 
   </nav>

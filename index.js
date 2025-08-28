@@ -104,7 +104,12 @@ app.set("attachRouters", () => attachRouters(app));
 addonManager.loadedAddons.forEach(addon => {
   app.use("/", addon.router);
 });
+const addonViews = addonManager.loadedAddons
+  .map(a => path.join(__dirname, "addons", a.folder, "views"))
+  .filter(p => fs.existsSync(p));
 
+// Include the main frontend folder as well
+app.set("views", [path.join(__dirname, "/frontend"), ...addonViews]);
 // Register admin addon route
 app.use("/", addonManager.router);
 

@@ -75,8 +75,7 @@ function loadAddons() {
         description: info.description,
         sidebar: info.sidebar || [],
         status: info.status || "enabled",
-        folder,
-        paths: info.paths || []
+        folder
       };
 
       // Always push for admin page

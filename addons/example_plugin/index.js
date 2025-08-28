@@ -1,5 +1,7 @@
+const Logger = require("../../utilities/logger");
+const logger = new Logger({ prefix: "ExamplePlugin", level: "debug" });
 module.exports = {
   init: function () {
-    console.log("✅ Example Plugin initialized!");
+    logger.init("✅ Example Plugin initialized!");
   }
 };

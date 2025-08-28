@@ -29,6 +29,9 @@ async function requireLogin(req, res, next) {
 }
 
 router.get("/example",requireLogin, (req, res) => {
+  res.render("example",{name: 'Ploxora'});
+});
+router.get("/vps/:id/example",requireLogin, (req, res) => {
   res.send("Hello from Example Plugin!");
 });
 

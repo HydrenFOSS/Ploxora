@@ -541,7 +541,20 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
       node.status = status;
       await nodes.set(nodeId, node);
     }
-
+    let version = "Unknown";
+    try {
+      const ver_res = await fetch(
+        `http://${node.address}:${node.port}/version?x-verification-key=${node.token}`,
+        { timeout: 3000 }
+      );
+      if (ver_res.ok) {
+        const ver_data = await ver_res.json();
+        version = ver_data.version || "Unknown";
+      }
+    } catch (err) {
+      logger.error(`Failed to fetch version for node ${nodeId}:`, err.message);
+      version = "Unknown";
+    }
     // --- Collect servers assigned to this node ---
     const allServers = [];
     for await (const [key, server] of servers.iterator()) {
@@ -561,6 +574,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
       node: {
         ...node,
         status,
+        version,
       },
       servers: allServers,
       addons: addonManager.loadedAddons

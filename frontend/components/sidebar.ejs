@@ -21,11 +21,11 @@
     <a href="/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
       <i data-lucide="settings" class="w-5 h-5"></i> Settings
     </a>
-<% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0 && a.paths && a.paths.length > 0) { %>
-    <% a.sidebar.forEach((s, i) => { %>
-      <% if (s.for === "user" && a.paths[i]) { %>
-        <a href="<%= a.paths[i] %>"
+  <% addons.forEach(a => { %>
+  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+    <% a.sidebar.forEach(s => { %>
+      <% if (s.for === "user") { %>
+        <a href="<%= s.path %>"
            class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
           <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
           <%= s.text || a.name %>
@@ -34,6 +34,7 @@
     <% }) %>
   <% } %>
 <% }) %>
+
 <% if (user.admin) { %>
    <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
       <i data-lucide="user-star" class="w-5 h-5"></i> Admin

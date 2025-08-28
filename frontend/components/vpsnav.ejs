@@ -15,12 +15,11 @@
     <i data-lucide="ScrollText" class="w-5 h-5"></i>
     Logs
   </a> -->
-
 <% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0 && a.paths && a.paths.length > 0) { %>
-    <% a.sidebar.forEach((s, i) => { %>
-      <% if (s.for === "vps" && a.paths[i]) { %>
-        <a href="<%= a.paths[i].replace(':id', server.containerId) %>" 
+  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+    <% a.sidebar.forEach(s => { %>
+      <% if (s.for === "vps") { %>
+        <a href="<%= s.path.replace(':id', server.containerId) %>" 
            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
           <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
           <%= s.text || a.name %>
