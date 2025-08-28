@@ -39,24 +39,23 @@ class Logger {
     }
   }
 
-  debug(msg) {
-    this.log("debug", msg);
-  }
+  debug(msg) { this.log("debug", msg); }
+  info(msg) { this.log("info", msg); }
+  warn(msg) { this.log("warn", msg); }
+  error(msg) { this.log("error", msg); }
+  init(msg) { this.log("init", msg); }
 
-  info(msg) {
-    this.log("info", msg);
-  }
+  // ------------------- Table logger -------------------
+   table(items) {
+    if (!Array.isArray(items) || items.length === 0) return;
 
-  warn(msg) {
-    this.log("warn", msg);
-  }
+    // Build table rows: split route string into name/version
+    const rows = items.map((item, idx) => {
+      const [namePart, authorPart, versionPart] = item.split("|").map(s => s.trim());
+      return { "#": idx + 1, Name: namePart, Version: versionPart };
+    });
 
-  error(msg) {
-    this.log("error", msg);
-  }
-
-  init(msg) {
-    this.log("init", msg);
+    console.table(rows);
   }
 }
 
