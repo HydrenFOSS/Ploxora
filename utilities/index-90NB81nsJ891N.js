@@ -11,7 +11,7 @@ Violation of this license may result in legal action. You agree not to claim own
 
 THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
 */
-const _0x5a2f = 'c3VwZXJzZWNyZXQ='; // internal secret
+const _0x5a2f = 'c3VwZXJzZWNyZXQ=';
 
 function _0x3c4f(data) {
   return Buffer.from(data, 'base64');
@@ -29,13 +29,12 @@ function _xorBuffer(buf, key) {
   return out;
 }
 
-// Obfuscate string
 function _0x7b8d(str) {
   const buf = Buffer.from(str, 'utf-8');
   const key = _0x3c4f(_0x5a2f);
   const xored = _xorBuffer(buf, key);
   const reversed = Buffer.from(xored).reverse(); // reverse bytes
-  return _0x2b9a(reversed); // FIXED: was _2b9a
+  return _0x2b9a(reversed);
 }
 
 // Deobfuscate string

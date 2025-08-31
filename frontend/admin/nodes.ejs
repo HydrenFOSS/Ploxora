@@ -83,22 +83,25 @@
               <% if (nodes && nodes.length > 0) { %>
                 <% nodes.forEach((node, index) => { %>
                   <tr class="hover:bg-neutral-850 transition">
-                    <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
-                      <% if (node.status === "Online") { %>
-                        <!-- Green dot -->
-                        <span class="relative flex h-3 w-3">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                        </span>
+                  <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
+                    <div class="relative group flex items-center">
+                    <% if (node.status==="Online" ) { %>
+                      <!-- Green Heart for Online -->
+                      <i data-lucide="heart" fill="currentColor" class="w-5 h-5 text-green-500 animate-pulse"></i>
                       <% } else { %>
-                        <!-- Red dot -->
-                        <span class="relative flex h-3 w-3">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                        </span>
-                      <% } %>
-                      <%= node.name || "Unnamed Node" %>
-                    </td>
+                        <!-- Red Heart for Offline -->
+                        <i data-lucide="heart" class="w-5 h-5 text-red-500 animate-pulse"></i>
+                        <% } %>
+                            <!-- Tooltip -->
+                            <span
+                              class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-neutral-800 text-gray-300 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                              <%= node.version %>
+                            </span>
+                    </div>
+                  
+                    <%= node.name || "Unnamed Node" %>
+                  </td>
+
                     <td class="px-6 py-3 text-gray-300"><%= node.address || "N/A" %></td>
                     <td class="px-6 py-3 text-gray-300"><%= node.port || "N/A" %></td>
                     <td class="px-6 py-3 text-gray-300"><%= node.location || "Unknown" %></td>
@@ -156,53 +159,83 @@
         </div>
       </div>
 
-      <!-- Create Node Modal -->
-      <div id="createNodeModal"
-        class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
-        <div class="bg-neutral-800 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a]">
-          <h2 class="text-xl font-semibold text-gray-200 mb-4">Create New Node</h2>
+<div id="createNodeModal"
+  class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
+  <div id="createNodeModalContent"
+       class="bg-neutral-800 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a] transform scale-95 opacity-0 transition-all duration-200">
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+      <i data-lucide="server" class="w-6 h-6 text-blue-500"></i>
+      Create New Node
+    </h2>
 
-          <form action="/admin/nodes/create" method="POST" class="space-y-4">
-            <div>
-              <label class="block text-gray-300 mb-1">Node Name</label>
-              <input type="text" name="name" required
-                class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
-            </div>
 
-            <div>
-              <label class="block text-gray-300 mb-1">Address</label>
-              <input type="text" name="address" required
-                class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
-            </div>
+    <form action="/admin/nodes/create" method="POST" class="space-y-5">
+      <div>
+        <label class="block text-gray-300 mb-1">Node Name</label>
+        <input type="text" name="name" required
+          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+      </div>
 
-            <div>
-              <label class="block text-gray-300 mb-1">Port</label>
-              <input type="number" name="port" required
-                class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
-            </div>
-
-            <div class="flex justify-end space-x-3 pt-4">
-              <button type="button" onclick="closeCNModal()"
-                class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white transition">
-                Cancel
-              </button>
-              <button type="submit"
-                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-md">
-                Save
-              </button>
-            </div>
-          </form>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-300 mb-1">Node RAM (GB)</label>
+          <input type="text" name="ram" required
+            class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+        </div>
+        <div>
+          <label class="block text-gray-300 mb-1">Node Cores</label>
+          <input type="text" name="cores" required
+            class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
         </div>
       </div>
+
+      <div>
+        <label class="block text-gray-300 mb-1">Address</label>
+        <input type="text" name="address" required
+          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
+      </div>
+
+      <div>
+        <label class="block text-gray-300 mb-1">Port</label>
+        <input type="number" name="port" required
+          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4">
+        <button type="button" onclick="closeCNModal()"
+          class="px-5 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 text-white transition shadow-sm">
+          Cancel
+        </button>
+        <button type="submit"
+          class="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition shadow-lg">
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
     </main>
   </div>
   <script>
-    function openCNModal() {
-      document.getElementById("createNodeModal").classList.remove("hidden");
-    }
+     function openCNModal() {
+    const modal = document.getElementById('createNodeModal');
+    const content = document.getElementById('createNodeModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      content.classList.remove('scale-95', 'opacity-0');
+      content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
     function closeCNModal() {
-      document.getElementById("createNodeModal").classList.add("hidden");
-    }
+    const modal = document.getElementById('createNodeModal');
+    const content = document.getElementById('createNodeModalContent');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 200);
+  }
     function closeInitComd() {
       document.getElementById("initCommandModal").classList.add("hidden");
     }

@@ -119,7 +119,7 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
         }
       }
     } catch (err) {
-      logger.error(`Health check failed for node ${nodeId}:`, err.message);
+      //logger.error(`Health check failed for node ${nodeId}:`, err.message);
       status = "Offline";
     }
 
@@ -135,6 +135,8 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
       node: {
         id: node.id,
         token: node.token,
+        ram: node.ram,
+        cores: node.cores,
         name: node.name,
         address: node.address,
         port: node.port,
@@ -219,7 +221,7 @@ router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
           }
         }
       } catch (err) {
-        logger.error(`Health check failed for node ${key}: ${err.message}`);
+        //logger.error(`Health check failed for node ${key}: ${err.message}`);
       }
 
       // Update DB if status changed
@@ -249,6 +251,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     for await (const [key, value] of nodes.iterator()) {
       let status = "Offline";
 
+      // Check Docker status
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 3000);
@@ -258,6 +261,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
           { signal: controller.signal }
         );
         clearTimeout(timeout);
+
         if (response.ok) {
           const data = await response.json();
           if (data.docker === "running") {
@@ -265,8 +269,22 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
           }
         }
       } catch (err) {
-        logger.error(`Health check failed for node ${key}:`, err.message);
         status = "Offline";
+      }
+
+      // Fetch Node version
+      let version = "Unknown";
+      try {
+        const ver_res = await fetch(
+          `http://${value.address}:${value.port}/version?x-verification-key=${value.token}`,
+          { timeout: 3000 }
+        );
+        if (ver_res.ok) {
+          const ver_data = await ver_res.json();
+          version = ver_data.version || "Unknown";
+        }
+      } catch (err) {
+        version = "Unknown";
       }
 
       // Update DB if status changed
@@ -275,7 +293,8 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
         await nodes.set(key, value);
       }
 
-      allNodes.push({ id: key, ...value });
+      // Push node with version
+      allNodes.push({ id: key, ...value, version });
     }
 
     res.render("admin/nodes", {
@@ -290,7 +309,6 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     res.status(500).send("Error loading nodes");
   }
 });
-
 
 // ---------- Admin Servers Page ----------
 router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
@@ -470,7 +488,7 @@ router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, r
 
 router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, address, port } = req.body;
+    const { name, address, port, ram,cores } = req.body;
 
     // Generate random ID + token
     const id = Math.random().toString(36).substring(2, 10);
@@ -492,6 +510,8 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
     const node = {
       id,
       token,
+      ram,
+      cores,
       name,
       address,
       port,
@@ -532,7 +552,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
         status = data.docker === "running" ? "Online" : "Offline";
       }
     } catch (err) {
-      logger.error(`Health check failed for node ${nodeId}:`, err.message);
+      //logger.error(`Health check failed for node ${nodeId}:`, err.message);
       status = "Offline";
     }
 
@@ -552,7 +572,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
         version = ver_data.version || "Unknown";
       }
     } catch (err) {
-      logger.error(`Failed to fetch version for node ${nodeId}:`, err.message);
+    //  logger.error(`Failed to fetch version for node ${nodeId}:`, err.message);
       version = "Unknown";
     }
     // --- Collect servers assigned to this node ---
@@ -614,10 +634,10 @@ router.get("/admin/node/:id/docker-usage", requireAdmin, async (req, res) => {
       if (response.ok) {
         usageData = await response.json();
       } else {
-        logger.error(`Failed to fetch Docker usage from node ${nodeId}: ${response.statusText}`);
+      //  logger.error(`Failed to fetch Docker usage from node ${nodeId}: ${response.statusText}`);
       }
     } catch (err) {
-      logger.error(`Error fetching Docker usage from node ${nodeId}: ${err.message}`);
+     // logger.error(`Error fetching Docker usage from node ${nodeId}: ${err.message}`);
     }
 
     res.json({

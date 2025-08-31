@@ -127,7 +127,7 @@ router.get("/api/v2/nodes/:id/docker-usage", checkApiKey, async (req, res) => {
     const data = await response.json();
     res.json({ success: true, usage: data });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch Docker usage", details: err.message });
+   // res.status(500).json({ error: "Failed to fetch Docker usage", details: err.message });
   }
 });
 
