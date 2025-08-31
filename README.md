@@ -18,21 +18,21 @@ Create a `.env` file in the root of your project:
 ```ini
 APP_PORT=6000
 APP_NAME=Ploxora
-API_KEY=MAKE_SURE_TO_CHANGE_THIS
 
 DISCORD_CLIENT_ID=YOUR_DISCORD_CLIENT_ID
 DISCORD_CLIENT_SECRET=YOUR_DISCORD_CLIENT_SECRET
 DISCORD_CALLBACK_URL=http://localhost:6000/auth/discord/callback
-
-# Admin accounts (comma separated emails)
 ADMIN_USERS=example@gmail.com,example2@gmail.com
+API_KEY=MAKE_SURE_TO_CHANGE_THIS
 
-# Database files (DO NOT CHANGE THESE IF YOU DONT KNOW WHAT UR DOING..)
+# not need to edit
+NODE_ENV=development
 DATABASE_FILE_NAME=sqlite://users.sqlite
 SESSIONS_FILE_NAME=sqlite://sessions.sqlite
 NODES_DB=sqlite://nodes.sqlite
 SETTINGS_DB=sqlite://settings.sqlite
 SERVERS_DB=sqlite://servers.sqlite
+
 ```
 
 ---

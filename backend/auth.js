@@ -1,3 +1,16 @@
+/*
+|--------------------------------------------------------------------------
+| Ploxora Authentication Routes
+| Author: ma4z
+| Version: v1
+|--------------------------------------------------------------------------
+| This file handles user authentication and account management:
+| - Discord OAuth2 login
+| - Local login & registration
+| - Session handling
+| - Logout
+|--------------------------------------------------------------------------
+*/
 const express = require("express");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
@@ -110,7 +123,12 @@ passport.deserializeUser(async (token, done) => {
   }
 });
 
-// Login page
+/*
+* Route: GET /
+* Description: Render login page. If a valid session exists, redirect to dashboard.
+* Query: ?err (optional error message)
+* Version: v1.0.0
+*/
 router.get("/", async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   if (token) {
@@ -122,8 +140,19 @@ router.get("/", async (req, res) => {
   res.render("login", { error: req.query.err || "", name });
 });
 
-// Discord auth routes
+/*
+* Route: GET /auth/discord
+* Description: Redirect user to Discord for authentication.
+* Version: v1.0.0
+*/
 router.get("/auth/discord", passport.authenticate("discord"));
+
+/*
+* Route: GET /auth/discord/callback
+* Description: Discord OAuth2 callback. Validates user, checks ban status, creates session.
+* Redirects: /dashboard (on success), / (on failure).
+* Version: v1.0.0
+*/
 router.get("/auth/discord/callback",
   passport.authenticate("discord", { failureRedirect: "/" }),
   async (req, res) => {
@@ -144,7 +173,11 @@ router.get("/auth/discord/callback",
   }
 );
 
-// Logout
+/*
+* Route: GET /logout
+* Description: Destroy session, clear cookie, logout user, and redirect to login.
+* Version: v1.0.0
+*/
 router.get("/logout", async (req, res) => {
   try {
     const token = req.cookies["SESSION-COOKIE"];
@@ -158,10 +191,25 @@ router.get("/logout", async (req, res) => {
     res.status(500).send("Error logging out " + err);
   }
 });
+/*
+* Route: GET /register
+* Description: Render registration page.
+* Query: ?err (optional error message)
+* Version: v1.0.0
+*/
 router.get("/register", async (req, res) => {
   const name = await getAppName();
   res.render("register", { error: req.query.err || "", name });
 });
+
+/*
+* Route: POST /register
+* Description: Register a new user with username, email, and password.
+* Body: { username, email, password }
+* Validations: Checks for existing email, hashes password, sets admin if email in ADMIN_USERS.
+* Redirects: /dashboard (on success), /register?err=... (on failure).
+* Version: v1.0.0
+*/
 
 router.post("/register", async (req, res) => {
   try {
@@ -205,12 +253,14 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Login route
-router.get("/login", async (req, res) => {
-  const name = await getAppName();
-  res.render("login", { error: req.query.err || "", name });
-});
-
+/*
+* Route: POST /login
+* Description: Authenticate a user with email and password.
+* Body: { email, password }
+* Validations: Check password, check ban status, assign admin if email matches ADMIN_USERS.
+* Redirects: /dashboard (on success), /?err=... (on failure).
+* Version: v1.0.0
+*/
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -224,10 +274,10 @@ router.post("/login", async (req, res) => {
       }
     }
 
-    if (!foundUser) return res.redirect("/login?err=Invalid credentials");
+    if (!foundUser) return res.redirect("/?err=Invalid credentials");
 
     const match = await bcrypt.compare(password, foundUser.password || "");
-    if (!match) return res.redirect("/login?err=Invalid credentials");
+    if (!match) return res.redirect("/?err=Invalid credentials");
 
     // Always re-check admin based on env
     foundUser.admin = adminEmails.includes(foundUser.email.toLowerCase());

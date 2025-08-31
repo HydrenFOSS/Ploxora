@@ -1,3 +1,18 @@
+/*
+|--------------------------------------------------------------------------
+| Ploxora Admin Routes
+| Author: ma4z
+| Version: v1
+|--------------------------------------------------------------------------
+| This file contains all admin-related routes for managing:
+| - Overview dashboard
+| - Nodes
+| - Servers
+| - Settings
+| - Users
+|--------------------------------------------------------------------------
+*/
+
 const router = require("express").Router();
 const Logger = require("../utilities/logger");
 const logDiscord = require("../utilities/discordLogging");
@@ -88,10 +103,23 @@ async function requireLogin(req, res, next) {
     res.redirect("/?err=AUTH-FAILED");
   }
 }
-
+/*
+* Route: /admin/overview
+* Description: Admin Overview Dashboard for displaying the latest Ploxora version and related details.
+* Version: v1.0.0
+* Request: GET
+*/
 router.get("/admin/overview", requireAdmin, requireLogin, async (req, res) => {
   res.render("admin/overview", { name: await getAppName(), user: req.user, version: package.version, addons: addonManager.loadedAddons })
 });
+
+/*
+* Route: /admin/node/:id/data
+* Description: Get A Specific Node Details 
+* Version: v1.0.0
+* Params: id
+* Request: GET
+*/
 router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
@@ -152,7 +180,13 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
 });
 
 const upload = multer({ storage });
-// Route to upload logo
+
+/*
+* Route: /admin/settings/upload-logo
+* Description: Route for Uploading logo or updating the existing logo
+* Version: v1.0.0
+* Request: POST
+*/
 router.post("/admin/settings/upload-logo", requireLogin, requireAdmin, upload.single("Logo"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -167,6 +201,12 @@ router.post("/admin/settings/upload-logo", requireLogin, requireAdmin, upload.si
     res.status(500).json({ success: false, message: "Failed to upload logo" });
   }
 });
+/*
+* Route: /admin/settings
+* Description: Admin Settings
+* Version: v1.0.0
+* Request: GET
+*/
 router.get("/admin/settings", requireLogin, requireAdmin, async (req, res) => {
   try {
     const allSettings = {};
@@ -188,7 +228,13 @@ router.get("/admin/settings", requireLogin, requireAdmin, async (req, res) => {
     res.status(500).send("Error loading settings");
   }
 });
-
+/*
+* Route: /admin/settings/:key/:value
+* Description: Admin Settings Router for updating an value of a key
+* Version: v1.0.0
+* Params: key,value
+* Request: GET
+*/
 router.get("/admin/settings/update/:key/:value", requireLogin, requireAdmin, async (req, res) => {
   try {
     const { key, value } = req.params;
@@ -202,6 +248,12 @@ router.get("/admin/settings/update/:key/:value", requireLogin, requireAdmin, asy
     res.status(500).send("Failed to update settings");
   }
 });
+/*
+* Route: /admin/nodes/json
+* Description: Admin Fetch Nodes from the nodes database
+* Version: v1.0.0
+* Request: GET
+*/
 router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
   try {
     const allNodes = [];
@@ -243,7 +295,12 @@ router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
   }
 });
 
-// ---------- Admin Nodes Page ----------
+/*
+* Route: /admin/nodes
+* Method: GET
+* Description: Render the admin nodes page with live node status and versions.
+* Version: v1.0.0
+*/
 router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
   try {
     const allNodes = [];
@@ -310,7 +367,12 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
   }
 });
 
-// ---------- Admin Servers Page ----------
+/*
+* Route: /admin/servers
+* Method: GET
+* Description: Render the admin servers page with all servers, users, and nodes.
+* Version: v1.0.0
+*/
 router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
   try {
     const allServers = [];
@@ -340,6 +402,13 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
     res.status(500).send("Error loading servers");
   }
 });
+/*
+* Route: /admin/servers/create
+* Method: POST
+* Description: Create and deploy a new server for a specific user on a node.
+* Body: { name, gb, cores, userId, nodeId }
+* Version: v1.0.0
+*/
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
     const { name, gb, cores, userId, nodeId } = req.body;
@@ -394,6 +463,15 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     res.status(500).send("Error creating server");
   }
 });
+
+
+/*
+* Route: /admin/servers/delete/:id
+* Method: POST
+* Description: Delete an existing server and remove it from its node and user.
+* Params: id (Server ID)
+* Version: v1.0.0
+*/
 router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req, res) => {
   try {
     const serverId = req.params.id;
@@ -438,6 +516,14 @@ router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req,
     res.status(500).send("Error deleting server");
   }
 });
+
+/*
+* Route: /admin/nodes/delete/:id
+* Method: POST
+* Description: Delete a node and all associated servers linked to it.
+* Params: id (Node ID)
+* Version: v1.0.0
+*/
 router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
@@ -486,6 +572,13 @@ router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, r
   }
 });
 
+/*
+* Route: /admin/nodes/create
+* Method: POST
+* Description: Create a new node and save it to the database.
+* Body: { name, address, port, ram, cores }
+* Version: v1.0.0
+*/
 router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) => {
   try {
     const { name, address, port, ram,cores } = req.body;
@@ -530,6 +623,14 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
     res.redirect("/admin/nodes?err=FAILED-CREATE");
   }
 });
+
+/*
+* Route: /admin/node/:id
+* Method: GET
+* Description: Render details page for a specific node, including servers, status, and version.
+* Params: id (Node ID)
+* Version: v1.0.0
+*/
 router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
   try {
     const nodeId = req.params.id;
@@ -605,6 +706,13 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
     res.status(500).send("Failed to fetch node info");
   }
 });
+/*
+* Route: /admin/node/:id/docker-usage
+* Method: GET
+* Description: Fetch real-time Docker usage stats (CPU, memory, disk) from a node.
+* Params: id (Node ID)
+* Version: v1.0.0
+*/
 router.get("/admin/node/:id/docker-usage", requireAdmin, async (req, res) => {
   try {
     const nodeId = req.params.id;
@@ -650,6 +758,13 @@ router.get("/admin/node/:id/docker-usage", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch Docker usage" });
   }
 });
+
+/*
+* Route: /admin/users
+* Method: GET
+* Description: Render the admin users page with all registered users.
+* Version: v1.0.0
+*/
 router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
   try {
     const allUsers = [];
@@ -669,6 +784,13 @@ router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
     res.status(500).send("Error loading users");
   }
 });
+/*
+* Route: /admin/users/ban/:id
+* Method: POST
+* Description: Ban a user from the platform.
+* Params: id (User ID)
+* Version: v1.0.0
+*/
 router.post("/admin/users/ban/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -685,7 +807,13 @@ router.post("/admin/users/ban/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// POST /admin/users/unban/:id
+/*
+* Route: /admin/users/unban/:id
+* Method: POST
+* Description: Unban a previously banned user.
+* Params: id (User ID)
+* Version: v1.0.0
+*/
 router.post("/admin/users/unban/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -701,7 +829,13 @@ router.post("/admin/users/unban/:id", requireAdmin, async (req, res) => {
     res.status(500).send("Failed to unban user");
   }
 });
-// POST /admin/users/delete/:id
+/*
+* Route: /admin/users/delete/:id
+* Method: POST
+* Description: Permanently delete a user from the system.
+* Params: id (User ID)
+* Version: v1.0.0
+*/
 router.post("/admin/users/delete/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;

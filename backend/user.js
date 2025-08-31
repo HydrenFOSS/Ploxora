@@ -1,3 +1,16 @@
+/*
+|--------------------------------------------------------------------------
+| Ploxora User Routes
+| Author: ma4z
+| Version: v1
+|--------------------------------------------------------------------------
+| This file handles user-side routes for:
+| - Authentication checks
+| - Settings & account management
+| - Dashboard
+| - VPS server management (stats, actions, SSH)
+|--------------------------------------------------------------------------
+*/
 const router = require('express').Router();
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -51,16 +64,14 @@ router.use(session({
   cookie: { httpOnly: true },
 }));
 
-// Login page
-router.get("/", async (req, res) => {
-  const token = req.cookies["SESSION-COOKIE"];
-  if (token) return res.redirect('/dashboard');
-
-  const name = await getAppName();
-  res.render("login", { error: req.query.err || "", name });
-});
 const addonManager = require("../addons/addon_manager");
 
+/*
+* Route: GET /settings
+* Description: Render settings page.
+* Data: Logged-in user, app name, loaded addons.
+* Version: v1.0.0
+*/
 router.get('/settings', requireLogin, async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   const userId = await sessions.get(token);
@@ -68,7 +79,14 @@ router.get('/settings', requireLogin, async (req, res) => {
   res.render("settings", { user, name: await getAppName(), addons: addonManager.loadedAddons})
 });
 
-// Delete account (unlink from your app, not Discord itself)
+
+/*
+* Route: POST /settings/delete-account
+* Description: Delete current user account and active session.
+* Behavior: Clears cookies, removes from DB, redirects to login with msg=ACCOUNT_DELETED.
+* Version: v1.0.0
+*/
+
 router.post('/settings/delete-account', requireLogin, async (req, res) => {
   try {
     const user = req.user;
@@ -86,7 +104,13 @@ router.post('/settings/delete-account', requireLogin, async (req, res) => {
     res.redirect('/settings?err=DELETE_FAILED');
   }
 });
-// Dashboard page
+
+/*
+* Route: GET /dashboard
+* Description: Render user dashboard with node count & addons.
+* Validations: Requires active session + user.
+* Version: v1.0.0
+*/
 router.get("/dashboard", async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
@@ -110,6 +134,13 @@ router.get("/dashboard", async (req, res) => {
   res.render('dashboard', { user, name, nodes: count, addons: addonManager.loadedAddons });
 });
 
+/*
+* Route: GET /server/stats/:containerId
+* Description: Fetch live server stats for a given container from node.
+* Params: containerId
+* Response: JSON stats (CPU, RAM, etc.)
+* Version: v1.0.0
+*/
 router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
   const { containerId } = req.params;
   const q = req.user;
@@ -147,6 +178,11 @@ router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
       .json({ error: "Failed to fetch stats", details: err.message });
   }
 });
+/*
+* Function: getServerByContainerId(containerId)
+* Purpose: Find a server in serversDB by containerId.
+* Returns: { id, server } or null if not found.
+*/
 async function getServerByContainerId(containerId) {
   for await (const [id, server] of serversDB.iterator()) {
     if (server.containerId === containerId) return { id, server };
@@ -154,6 +190,12 @@ async function getServerByContainerId(containerId) {
   return null;
 }
 
+/*
+* Route: GET /vps/:containerId
+* Description: Render VPS page for a specific container.
+* Validations: Ensures user owns requested VPS.
+* Version: v1.0.0
+*/
 router.get("/vps/:containerId", requireLogin, async (req, res) => {
   try {
     const { containerId } = req.params;
@@ -169,8 +211,13 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
   }
 });
 
-
-// Generic VPS action route
+/*
+* Route: POST /vps/action/:containerId/:action
+* Description: Perform an action (start, stop, restart) on a VPS container.
+* Params: containerId, action
+* Validations: Only allows "start", "stop", "restart".
+* Version: v1.0.0
+*/
 router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) => {
   try {
     const { containerId, action } = req.params;
@@ -208,7 +255,13 @@ router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) =
     res.status(500).json({ error: "Failed to perform action", details: err.message });
   }
 });
-
+/*
+* Route: POST /vps/ressh/:containerId
+* Description: Regenerate SSH details for a VPS.
+* Process: Validates access, fetches from node, updates DB.
+* Returns: JSON with updated SSH info.
+* Version: v1.0.0
+*/
 router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
   try {
     const { containerId } = req.params;
