@@ -1,0 +1,59 @@
+name: Start Ploxora
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Ensure .env exists
+      - name: Ensure .env exists
+        run: |
+          if [ ! -f ".env" ]; then
+            mv .env_example .env
+            echo ".env created from .env_example"
+          else
+            echo ".env already exists"
+          fi
+
+      # 3️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      # 4️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 5️⃣ Start Node app and watch for success
+      - name: Start Ploxora and watch logs
+        run: |
+          echo "Starting Ploxora..."
+          node . > ploxora.log 2>&1 &
+          NODE_PID=$!
+
+          SUCCESS=false
+          for i in {1..20}; do
+            if grep -q "Ploxora has been started on port 6000!" ploxora.log; then
+              SUCCESS=true
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$SUCCESS" = true ]; then
+            echo "[✅] Ploxora started successfully!"
+            kill $NODE_PID
+            echo "Node process cleaned up."
+          else
+            echo "[❌] Ploxora did not start successfully. Check ploxora.log"
+            kill $NODE_PID || true
+            exit 1
+          fi
