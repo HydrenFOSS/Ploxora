@@ -9,6 +9,7 @@ const Logger = require("./utilities/logger");
 const { minify } = require("html-minifier-terser");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
+require('./utilities/index-8018625156214.js');
 
 // --- Express setup ---
 app.use(express.urlencoded({ extended: true }));
