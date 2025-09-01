@@ -1,5 +1,5 @@
 <!-- Mobile toggle button -->
-<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-neutral-900 text-white">
+<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-neutral-900 text-white hover:bg-neutral-900 transition">
   <i data-lucide="menu" class="w-6 h-6"></i>
 </button>
 
@@ -9,40 +9,43 @@
 
   <div class="mb-8 flex justify-center items-center gap-3">
     <img src="/uploads/logo.png" alt="Ploxora Logo" class="h-10 w-auto">
-    <h1 class="text-xl font-bold text-white">Ploxora</h1>
+    <h1 class="text-xl font-bold text-white"><%= name %></h1>
   </div>
 
-
   <nav class="space-y-3">
-    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/dashboard"
+       class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
     </a>
 
-    <a href="/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/settings"
+       class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="settings" class="w-5 h-5"></i> Settings
     </a>
-  <% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
-    <% a.sidebar.forEach(s => { %>
-      <% if (s.for === "user") { %>
-        <a href="<%= s.path %>"
-           class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-          <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
-          <%= s.text || a.name %>
-        </a>
+
+    <% addons.forEach(a => { %>
+      <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+        <% a.sidebar.forEach(s => { %>
+          <% if (s.for === "user") { %>
+            <a href="<%= s.path %>"
+               class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+              <i data-lucide="<%= s.icon || 'puzzle' %>" class="w-5 h-5"></i>
+              <%= s.text || a.name %>
+            </a>
+          <% } %>
+        <% }) %>
       <% } %>
     <% }) %>
-  <% } %>
-<% }) %>
 
-<% if (user.admin) { %>
-   <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-      <i data-lucide="user-star" class="w-5 h-5"></i> Admin
-    </a>
-<% } %>
+    <% if (user.admin) { %>
+      <a href="/admin/overview"
+         class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+        <i data-lucide="user-star" class="w-5 h-5"></i> Admin
+      </a>
+    <% } %>
   </nav>
 
-  <div class="mt-auto pt-6 border-t border-neutral-800">
+  <div class="mt-auto pt-6 border-t border-neutral-900">
     <span class="text-xs text-gray-500">&copy; 2025 Ploxora</span>
   </div>
 </aside>

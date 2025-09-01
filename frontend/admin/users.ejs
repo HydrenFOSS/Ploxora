@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('../components/head') %>
-  <body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('../components/admin_sidebar.ejs') %>
@@ -12,14 +12,14 @@
       <%- include('../components/nav.ejs') %>
 
       <!-- Dashboard Content -->
-      <main class="p-6 space-y-6">
+      <main class="p-6 space-y-8">
 
         <!-- Page Title -->
         <h2 class="text-2xl font-semibold text-white tracking-wide">Dashboard Users</h2>
 
         <!-- Flash Messages -->
         <% if (req.query.msg) { %>
-          <div class="bg-neutral-800 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3">
+          <div class="bg-neutral-900 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3">
             <div class="flex-shrink-0">
               <% if (req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED')) { %>
                 <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
@@ -53,30 +53,30 @@
         <% } %>
 
         <!-- Users Table -->
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
           <h3 class="text-xl font-semibold text-white mb-4">Users</h3>
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
-                <th class="px-4 py-3 rounded-l-lg">Profile</th>
-                <th class="px-4 py-3">Username</th>
-                <th class="px-4 py-3">Email</th>
-                <th class="px-4 py-3">ID</th>
-                <th class="px-4 py-3">Role</th>
-                <th class="px-4 py-3 rounded-r-lg">Actions</th>
+                <th class="px-6 py-3 rounded-l-lg">Profile</th>
+                <th class="px-6 py-3">Username</th>
+                <th class="px-6 py-3">Email</th>
+                <th class="px-6 py-3">ID</th>
+                <th class="px-6 py-3">Role</th>
+                <th class="px-6 py-3 rounded-r-lg">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-neutral-700 text-gray-400">
+            <tbody class="divide-y divide-neutral-800 text-gray-400">
               <% if (Array.isArray(users) && users.length > 0) { %>
                 <% users.forEach(function(u) { %>
-                  <tr class="hover:bg-neutral-850 transition">
-                    <td class="px-4 py-3">
+                  <tr class="hover:bg-neutral-900 transition">
+                    <td class="px-6 py-3">
                       <img src="<%= u.profilePicture %>" alt="<%= u.username %>" class="w-8 h-8 rounded-full">
                     </td>
-                    <td class="px-4 py-3 font-medium text-gray-200"><%= u.username %></td>
-                    <td class="px-4 py-3 text-gray-300"><%= u.email %></td>
-                    <td class="px-4 py-3 text-gray-400"><%= u.id %></td>
-                    <td class="px-4 py-3">
+                    <td class="px-6 py-3 font-medium text-gray-200"><%= u.username %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= u.email %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= u.id %></td>
+                    <td class="px-6 py-3">
                       <% if (u.admin) { %>
                         <span class="inline-flex items-center px-3 py-1 rounded-full bg-yellow-600/20 text-yellow-400 text-sm font-medium">
                           <i data-lucide="shield" class="w-4 h-4 mr-1"></i> Admin
@@ -87,7 +87,7 @@
                         </span>
                       <% } %>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-6 py-3">
                       <div class="flex items-center space-x-2">
                         <% if (u.username === user.username) { %>
                           <button disabled class="bg-gray-700 text-gray-500 text-sm px-3 py-1 rounded-lg cursor-not-allowed">Cannot</button>

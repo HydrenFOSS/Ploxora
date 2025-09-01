@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('components/head') %>
-<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('components/sidebar.ejs') %>
@@ -12,45 +12,45 @@
     <%- include('components/nav.ejs') %>
 
     <!-- Page Content -->
-    <main class="p-6 grid grid-cols-1 gap-6">
+    <main class="p-10 grid grid-cols-1 gap-6">
 
       <!-- Header -->
-      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <div class="bg-neutral-950 border border-[#2a2a2a] p-6 rounded-xl shadow-lg">
         <h1 class="text-2xl font-bold text-white flex items-center gap-2">
            <i data-lucide="settings" class="w-6 h-6"></i>
-            Settings
+           Settings
         </h1>
         <p class="text-gray-400 mt-2">Manage your account preferences and security.</p>
       </div>
 
       <!-- Account Settings -->
-      <section class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-4">
-        <h2 class="text-lg font-semibold text-white mb-2">Account Information</h2>
+      <section class="bg-neutral-950 border border-[#2a2a2a] p-6 rounded-xl shadow-lg space-y-4">
+        <h2 class="text-lg font-semibold text-white mb-4">Account Information</h2>
         <form action="/settings/update-profile" method="POST" class="space-y-4">
           <div>
-            <label class="block text-gray-400 mb-1">Username</label>
+            <label class="block text-gray-400 text-sm mb-1">Username</label>
             <input type="text" name="username" value="<%= user.username %>" 
               disabled
-              class="w-full px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-gray-400 cursor-not-allowed">
+              class="w-full px-4 py-2 rounded-xl bg-neutral-900 border border-[#2a2a2a] text-gray-500 cursor-not-allowed">
           </div>
 
           <div>
-            <label class="block text-gray-400 mb-1">Email</label>
+            <label class="block text-gray-400 text-sm mb-1">Email</label>
             <input type="email" name="email" value="<%= user.email %>" 
               disabled
-              class="w-full px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-gray-400 cursor-not-allowed">
+              class="w-full px-4 py-2 rounded-xl bg-neutral-900 border border-[#2a2a2a] text-gray-500 cursor-not-allowed">
           </div>
         </form>
       </section>
 
       <!-- Danger Zone -->
-      <section class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
-        <h2 class="text-lg font-semibold text-red-500 mb-2">Danger Zone</h2>
+      <section class="bg-neutral-950 border border-[#2a2a2a] p-6 rounded-xl shadow-lg">
+        <h2 class="text-lg font-semibold text-red-500 mb-3">Danger Zone</h2>
         <p class="text-gray-400 mb-4">Deleting your account is permanent and cannot be undone.</p>
         <form action="/settings/delete-account" method="POST" 
           onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
           <button type="submit" 
-            class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition shadow-md font-medium">
+            class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 transition shadow-md font-semibold text-white">
             Delete Account
           </button>
         </form>

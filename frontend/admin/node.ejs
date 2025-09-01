@@ -2,7 +2,8 @@
 <html lang="en">
 <%- include('../components/head') %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
@@ -17,26 +18,26 @@
     <main class="p-6 flex flex-col space-y-6">
 
       <!-- Node Info -->
-      <div class="flex flex-col md:flex-row md:justify-between md:items-center bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center bg-neutral-950 p-6 rounded-xl shadow-lg border border-[#2a2a2a]">
         <div class="flex flex-col md:flex-row md:items-center md:space-x-6 mb-4 md:mb-0 w-full md:w-auto">
-          <h1 class="text-3xl font-bold text-gray-200 mb-2 md:mb-0">
+          <h1 class="text-3xl font-bold text-white mb-2 md:mb-0">
             <%= node.name %>
           </h1>
-          <span class="text-gray-300 text-sm md:text-base">
+          <span class="text-gray-400 text-sm md:text-base">
             ID: <%= node.id %> | Location: <%= node.location %>
           </span>
 
           <!-- Uptime -->
-          <span class="text-gray-300 text-sm md:text-base flex items-center space-x-2">
+          <span class="text-gray-400 text-sm md:text-base flex items-center space-x-2">
             <span class="font-semibold">Uptime:</span>
-            <span id="node-uptime" class="px-3 py-1 bg-neutral-700 rounded text-blue-400 font-mono">
+            <span id="node-uptime" class="px-3 py-1 bg-neutral-900 border border-[#2a2a2a] rounded text-blue-400 font-mono">
               Loading...
             </span>
           </span>
 
-          <span class="text-gray-300 text-sm md:text-base flex items-center space-x-2">
+          <span class="text-gray-400 text-sm md:text-base flex items-center space-x-2">
             <span class="font-semibold">Version:</span>
-            <span class="px-3 py-1 bg-neutral-700 rounded text-blue-400 font-mono">
+            <span class="px-3 py-1 bg-neutral-900 border border-[#2a2a2a] rounded text-blue-400 font-mono">
               <%= node.version %>
             </span>
           </span>
@@ -44,68 +45,67 @@
 
         <!-- Node Status -->
         <span id="node-status"
-          class="inline-block text-white px-4 py-2 rounded font-semibold text-lg <%= node.status === 'Online' ? 'bg-green-500' : 'bg-red-500' %>">
+          class="inline-block text-white px-4 py-2 rounded font-semibold text-lg <%= node.status === 'Online' ? 'bg-green-600' : 'bg-red-600' %>">
           <%= node.status %>
         </span>
       </div>
 
       <!-- Tab Switcher -->
       <div class="flex space-x-4">
-        <button onclick="switchTab('stats')" class="px-4 py-2 bg-neutral-700 rounded-lg hover:bg-neutral-600" id="tab-stats">Node Stats</button>
-        <button onclick="switchTab('servers')" class="px-4 py-2 bg-neutral-700 rounded-lg hover:bg-neutral-600" id="tab-servers">Servers</button>
-        <button onclick="switchTab('hardware')" class="px-4 py-2 bg-neutral-700 rounded-lg hover:bg-neutral-600" id="tab-hardware">Hardware</button>
+        <button onclick="switchTab('stats')" class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800" id="tab-stats">Node Stats</button>
+        <button onclick="switchTab('servers')" class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800" id="tab-servers">Servers</button>
+        <button onclick="switchTab('hardware')" class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800" id="tab-hardware">Hardware</button>
       </div>
 
       <!-- Node Stats Section -->
       <div id="tab-content-stats" class="space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- CPU -->
-          <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
-            <h2 class="text-xl font-semibold text-gray-200 mb-4">CPU Usage (%)</h2>
+          <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+            <h2 class="text-xl font-semibold text-white mb-4">CPU Usage (%)</h2>
             <canvas id="cpuChart" class="w-full h-64"></canvas>
           </div>
 
           <!-- RAM -->
-          <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
-            <h2 class="text-xl font-semibold text-gray-200 mb-4">RAM Usage (MB)</h2>
+          <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+            <h2 class="text-xl font-semibold text-white mb-4">RAM Usage (MB)</h2>
             <canvas id="ramChart" class="w-full h-64"></canvas>
           </div>
 
           <!-- Disk -->
-          <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
-            <h2 class="text-xl font-semibold text-gray-200 mb-4">Disk Usage (MB)</h2>
+          <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+            <h2 class="text-xl font-semibold text-white mb-4">Disk Usage (MB)</h2>
             <canvas id="diskChart" class="w-full h-64"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- Node Hardware Section -->
-     <div id="tab-content-hardware" class="hidden space-y-6">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- RAM Card -->
-    <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] flex flex-col items-center justify-center">
-      <h2 class="text-xl font-semibold text-gray-200 mb-4">Node RAM</h2>
-      <p class="text-4xl font-bold text-gray-300"><%= node.ram %> GB</p>
-      <p class="text-gray-400 mt-1 text-sm">Total RAM</p>
-    </div>
+      <!-- Hardware Section -->
+      <div id="tab-content-hardware" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- RAM -->
+          <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a] flex flex-col items-center justify-center">
+            <h2 class="text-xl font-semibold text-white mb-4">Node RAM</h2>
+            <p class="text-4xl font-bold text-gray-300"><%= node.ram %> GB</p>
+            <p class="text-gray-400 mt-1 text-sm">Total RAM</p>
+          </div>
 
-    <!-- Cores Card -->
-    <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] flex flex-col items-center justify-center">
-      <h2 class="text-xl font-semibold text-gray-200 mb-4">Node Cores</h2>
-      <p class="text-4xl font-bold text-gray-300"><%= node.cores %></p>
-      <p class="text-gray-400 mt-1 text-sm">CPU Cores</p>
-    </div>
-  </div>
-</div>
-
+          <!-- Cores -->
+          <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a] flex flex-col items-center justify-center">
+            <h2 class="text-xl font-semibold text-white mb-4">Node Cores</h2>
+            <p class="text-4xl font-bold text-gray-300"><%= node.cores %></p>
+            <p class="text-gray-400 mt-1 text-sm">CPU Cores</p>
+          </div>
+        </div>
+      </div>
 
       <!-- Servers Section -->
       <div id="tab-content-servers" class="hidden space-y-4">
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
-          <h2 class="text-xl font-semibold text-gray-200 mb-4">Servers on this Node</h2>
+        <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+          <h2 class="text-xl font-semibold text-white mb-4">Servers on this Node</h2>
           <table class="w-full text-left text-gray-300">
             <thead>
-              <tr class="border-b border-neutral-700">
+              <tr class="border-b border-[#2a2a2a]">
                 <th class="py-2">Name</th>
                 <th class="py-2">Container ID</th>
               </tr>
@@ -113,7 +113,7 @@
             <tbody>
               <% if (servers && servers.length > 0) { %>
                 <% servers.forEach(server => { %>
-              <tr class="border-b border-neutral-700">
+              <tr class="border-b border-[#2a2a2a]">
                 <td class="py-2"><%= server.name %></td>
                 <td class="py-2 font-mono"><%= server.containerId %></td>
                 <td class="py-2">
@@ -137,76 +137,70 @@
     </main>
   </div>
 
-<script>
-  // Chart.js setup
-  const labels = Array(20).fill('');
-  const cpuChart = new Chart(document.getElementById('cpuChart'), {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'CPU %', data: Array(20).fill(0), borderColor: 'rgb(34,197,94)', backgroundColor: 'rgba(34,197,94,0.2)', tension: 0.3 }] },
-    options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
-  });
+  <!-- Charts + Tabs -->
+  <script>
+    const labels = Array(20).fill('');
+    const cpuChart = new Chart(document.getElementById('cpuChart'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'CPU %', data: Array(20).fill(0), borderColor: 'rgb(34,197,94)', backgroundColor: 'rgba(34,197,94,0.2)', tension: 0.3 }] },
+      options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
+    });
 
-  const ramChart = new Chart(document.getElementById('ramChart'), {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'RAM MB', data: Array(20).fill(0), borderColor: 'rgb(59,130,246)', backgroundColor: 'rgba(59,130,246,0.2)', tension: 0.3 }] },
-    options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
-  });
+    const ramChart = new Chart(document.getElementById('ramChart'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'RAM MB', data: Array(20).fill(0), borderColor: 'rgb(59,130,246)', backgroundColor: 'rgba(59,130,246,0.2)', tension: 0.3 }] },
+      options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
+    });
 
-  const diskChart = new Chart(document.getElementById('diskChart'), {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'Disk MB', data: Array(20).fill(0), borderColor: 'rgb(245,158,11)', backgroundColor: 'rgba(245,158,11,0.2)', tension: 0.3 }] },
-    options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
-  });
+    const diskChart = new Chart(document.getElementById('diskChart'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Disk MB', data: Array(20).fill(0), borderColor: 'rgb(245,158,11)', backgroundColor: 'rgba(245,158,11,0.2)', tension: 0.3 }] },
+      options: { animation: false, responsive: true, scales: { y: { beginAtZero: true } } }
+    });
 
-  async function fetchNodeUsage() {
-    try {
-      const res = await fetch(`/admin/node/<%= node.id %>/docker-usage`);
-      const data = await res.json();
-      if (!data.success) return;
-      const usage = data.usage;
+    async function fetchNodeUsage() {
+      try {
+        const res = await fetch(`/admin/node/<%= node.id %>/docker-usage`);
+        const data = await res.json();
+        if (!data.success) return;
+        const usage = data.usage;
 
-      function pushData(chart, value) {
-        chart.data.datasets[0].data.push(value);
-        chart.data.datasets[0].data.shift();
-        chart.update();
-      }
-
-      pushData(cpuChart, usage.totalCPU ?? 0);
-      pushData(ramChart, usage.totalMemoryUsedMB ?? 0);
-      pushData(diskChart, usage.totalDiskMB ?? 0);
-      if (usage.uptime) {
-        if (typeof usage.uptime === "object") {
-          document.getElementById("node-uptime").textContent =
-            `${usage.uptime.days}d ${usage.uptime.hours}h ${usage.uptime.minutes}m`;
-        } else {
-          document.getElementById("node-uptime").textContent = usage.uptime;
+        function pushData(chart, value) {
+          chart.data.datasets[0].data.push(value);
+          chart.data.datasets[0].data.shift();
+          chart.update();
         }
+
+        pushData(cpuChart, usage.totalCPU ?? 0);
+        pushData(ramChart, usage.totalMemoryUsedMB ?? 0);
+        pushData(diskChart, usage.totalDiskMB ?? 0);
+
+        if (usage.uptime) {
+          document.getElementById("node-uptime").textContent =
+            typeof usage.uptime === "object"
+              ? `${usage.uptime.days}d ${usage.uptime.hours}h ${usage.uptime.minutes}m`
+              : usage.uptime;
+        }
+      } catch (err) {
+        console.error("Failed to fetch Docker usage:", err);
       }
-    } catch (err) {
-      console.error("Failed to fetch Docker usage:", err);
     }
-  }
 
-  fetchNodeUsage();
-  setInterval(fetchNodeUsage, 5000);
-</script>
+    fetchNodeUsage();
+    setInterval(fetchNodeUsage, 5000);
 
-<script>
-  function switchTab(tab) {
-    document.getElementById("tab-content-stats").classList.add("hidden");
-    document.getElementById("tab-content-servers").classList.add("hidden");
-    document.getElementById("tab-content-hardware").classList.add("hidden");
-    document.getElementById("tab-content-" + tab).classList.remove("hidden");
+    function switchTab(tab) {
+      ["stats", "servers", "hardware"].forEach(t => {
+        document.getElementById("tab-content-" + t).classList.add("hidden");
+        document.getElementById("tab-" + t).classList.remove("bg-neutral-800");
+      });
+      document.getElementById("tab-content-" + tab).classList.remove("hidden");
+      document.getElementById("tab-" + tab).classList.add("bg-neutral-800");
+    }
 
-    document.getElementById("tab-stats").classList.remove("bg-neutral-600");
-    document.getElementById("tab-servers").classList.remove("bg-neutral-600");
-    document.getElementById("tab-hardware").classList.remove("bg-neutral-600");
-    document.getElementById("tab-" + tab).classList.add("bg-neutral-600");
-  }
+    switchTab('stats');
+  </script>
 
-  switchTab('stats');
-</script>
-
-<script>lucide.createIcons();</script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

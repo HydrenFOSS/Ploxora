@@ -1,5 +1,5 @@
 <!-- Mobile toggle button -->
-<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-neutral-900 text-white">
+<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800 transition">
   <i data-lucide="menu" class="w-6 h-6"></i>
 </button>
 
@@ -9,56 +9,58 @@
 
   <div class="mb-8 flex justify-center items-center gap-3">
     <img src="/uploads/logo.png" alt="Ploxora Logo" class="h-10 w-auto">
-    <h1 class="text-xl font-bold text-white">Ploxora</h1>
+    <h1 class="text-xl font-bold text-white"><%= name %></h1>
   </div>
-
 
   <nav class="space-y-3">
     <% if (user.admin) { %>
-    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="arrow-left" class="w-5 h-5"></i> Go Back
     </a>
-     <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+
+    <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="table-of-contents" class="w-5 h-5"></i> Overview
     </a>
 
-    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="shield" class="w-5 h-5"></i> Settings
     </a>
     
-    <a href="/admin/nodes" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/admin/nodes" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="server" class="w-5 h-5"></i> Nodes
     </a>
 
-    <a href="/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="users" class="w-5 h-5"></i> Users
     </a>
 
-    <a href="/admin/servers" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+    <a href="/admin/servers" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="database" class="w-5 h-5"></i> VPS Instances
     </a>
-     <a href="/admin/addons" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
+
+    <a href="/admin/addons" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="puzzle" class="w-5 h-5"></i> Addons
     </a>
-  <div class="px-4 pt-4">
-    <span class="text-xs font-semibold tracking-wide text-gray-500">---------- ADDONS ----------</span>
-  </div>
- <% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
-    <% a.sidebar.forEach(s => { %>
-      <% if (s.for === "admin") { %>
-        <a href="<%= s.path %>" 
-           class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-neutral-800 transition">
-          <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
-          <%= s.text || a.name %>
-        </a>
+
+    <div class="px-4 pt-4">
+      <span class="text-xs font-semibold tracking-wide text-gray-500">---------- ADDONS ----------</span>
+    </div>
+
+    <% addons.forEach(a => { %>
+      <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+        <% a.sidebar.forEach(s => { %>
+          <% if (s.for === "admin") { %>
+            <a href="<%= s.path %>" 
+               class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+              <i data-lucide="<%= s.icon || 'puzzle' %>" class="w-5 h-5"></i>
+              <%= s.text || a.name %>
+            </a>
+          <% } %>
+        <% }) %>
       <% } %>
     <% }) %>
-  <% } %>
-<% }) %>
 
-        <% } %>
-
+    <% } %>
   </nav>
 
   <div class="mt-auto pt-6 border-t border-neutral-800">

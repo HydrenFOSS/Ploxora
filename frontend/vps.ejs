@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('components/head') %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('components/sidebar.ejs') %>
@@ -22,7 +22,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
     </svg>
     <div class="flex flex-col">
-      <span class="font-semibold text-lg">BETA Ploxora RDPs</span>
+      <span class="font-semibold text-lg">BETA RDPs</span>
       <span class="text-sm text-blue-100">
        RDP instances are localhost-only, connect using IPv4:PORT; expect limited features/instability, and for Windows 98 use at least 512 MB RAM if connection fails.
       </span>
@@ -30,7 +30,7 @@
   </div>
 <% } %>
       <!-- Server Info -->
-      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
         <h1 class="text-3xl font-bold text-gray-200">
           <%= server.name || "Unnamed VPS" %>
         </h1>
@@ -73,7 +73,7 @@
       </div>
 
       <!-- Controls -->
-      <div class="bg-neutral-800 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
         <h2 class="text-xl font-semibold text-gray-200">Controls</h2>
         <div class="flex flex-wrap gap-3">
           <% if (!server.ssh.includes('localhost')) { %>
@@ -91,31 +91,31 @@
         <!-- Logs -->
         <div class="mt-6">
           <h3 class="text-lg font-semibold text-gray-200 mb-2">Logs</h3>
-          <div id="logContainer" class="bg-neutral-900 border border-[#2a2a2a] rounded-lg p-3 h-60 overflow-y-auto font-mono text-sm space-y-1"></div>
+          <div id="logContainer" class="bg-neutral-950 border border-[#2a2a2a] rounded-lg p-3 h-60 overflow-y-auto font-mono text-sm space-y-1"></div>
         </div>
       </div>
 
       <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- CPU -->
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">CPU Usage</h2>
           <canvas id="cpuChart" class="w-full h-64"></canvas>
         </div>
 
         <!-- RAM -->
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">RAM Usage</h2>
           <canvas id="ramChart" class="w-full h-64"></canvas>
         </div>
 
         <!-- Disk -->
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Disk Usage</h2>
           <canvas id="diskChart" class="w-full h-64"></canvas>
         </div>
         <!-- Network -->
-        <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Network Usage</h2>
           <canvas id="networkChart" class="w-full h-64"></canvas>
         </div>
@@ -320,12 +320,15 @@ function updateActionButtons(status) {
   }
 }
 
-// --- VPS Polling ---
+let isconnectedtodaemon = false;
 async function updateVPS() {
   try {
     const res = await fetch(`/server/stats/${containerId}`);
     const data = await res.json();
-
+    if (!isconnectedtodaemon && res.ok) {
+      isconnectedtodaemon = true;
+      addLog('SUCCESS', "Connected to the Daemon");
+    }
     // Status
     const statusEl = document.getElementById("vps-status");
     let bgClass;
@@ -372,9 +375,11 @@ async function updateVPS() {
     ]);
     pushData(diskChart, data.diskUsageMB ?? 0);
   } catch (err) {
+    isconnectedtodaemon = false;
     console.error("Failed to fetch VPS stats:", err);
   }
 }
+addLog("INFO", "Connecting to the daemon");
 updateVPS();
 setInterval(updateVPS, 2000);
 
@@ -401,7 +406,6 @@ btnRessh.addEventListener("click", async () => {
 
 // --- Start/Stop/Restart ---
 async function performAction(action) {
-  addLog("INFO", "Connecting to the daemon");
   addLog("ACTION", `${action.charAt(0).toUpperCase() + action.slice(1)}ing server...`);
   try {
     const res = await fetch(`/vps/action/${containerId}/${action}`, {

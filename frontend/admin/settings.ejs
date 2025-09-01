@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('../components/head') %>
 
-<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
@@ -14,12 +14,12 @@
 
     <!-- Settings Content -->
     <main class="p-6 grid grid-cols-1 gap-6">
-      <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+      <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
         <div class="flex items-center justify-between mb-4">
-           <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-           <i data-lucide="settings" class="w-6 h-6"></i>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="settings" class="w-6 h-6"></i>
             Settings
-        </h1>
+          </h1>
         </div>
 
         <% if (req.query.msg === "SETTINGS_UPDATED") { %>
@@ -72,6 +72,7 @@
       </div>
     </main>
   </div>
+
   <script>
     async function updateSetting(key, value) {
       try {
@@ -107,6 +108,5 @@
     }
     lucide.createIcons();
   </script>
-
 </body>
 </html>

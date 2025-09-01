@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('../components/head') %>
-  <body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('../components/admin_sidebar.ejs') %>
@@ -26,7 +26,7 @@
 
           <!-- Flash Messages -->
           <% if (req.query.msg) { %>
-            <div class="bg-neutral-800 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3 mb-4">
+            <div class="bg-neutral-900 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3 mb-4">
               <div class="flex-shrink-0">
                 <% if (req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED')) { %>
                   <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
@@ -60,7 +60,7 @@
           <% } %>
 
           <!-- VPS Table -->
-          <div class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+          <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
@@ -72,10 +72,10 @@
                   <th class="px-6 py-3 rounded-r-lg">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-neutral-700 text-gray-400">
+              <tbody class="divide-y divide-neutral-800 text-gray-400">
                 <% if (servers && servers.length > 0) { %>
                   <% servers.forEach((server, index)=> { %>
-                    <tr class="hover:bg-neutral-850 transition">
+                    <tr class="hover:bg-neutral-950 transition">
                       <td class="px-6 py-3 font-medium text-gray-200"><%= server.name || "Unnamed server" %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.containerId ? server.containerId.substring(0, 12) : "N/A") %></td>
@@ -105,7 +105,7 @@
 
         <!-- Create Server Modal -->
         <section id="createServerModal" class="hidden">
-          <div class="bg-neutral-800 p-6 rounded-2xl shadow-2xl w-full border border-[#2a2a2a]">
+          <div class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full border border-[#2a2a2a]">
             <h2 class="text-xl font-semibold text-gray-200 mb-4">Create New VPS</h2>
 
             <form id="createServerForm" action="/admin/servers/create" method="POST" class="space-y-4">
@@ -113,26 +113,26 @@
               <div>
                 <label class="block text-gray-300 mb-1">VPS Name</label>
                 <input type="text" name="name" required
-                  class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">GB</label>
                 <input type="text" name="gb" required
-                  class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">Cores</label>
                 <input type="number" name="cores" required
-                  class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <!-- User Select -->
               <div>
                 <label class="block text-gray-300 mb-1">Assign User</label>
                 <select name="userId" required
-                  class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <% users.forEach(u=> { %>
                     <option value="<%= u.id %>"><%= u.username || u.email || u.id %></option>
                   <% }) %>
@@ -143,7 +143,7 @@
               <div>
                 <label class="block text-gray-300 mb-1">Assign Node</label>
                 <select name="nodeId" required
-                  class="w-full p-2 rounded-lg bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <% nodes.forEach(n=> { %>
                     <option value="<%= n.id %>"><%= n.name || n.address || n.id %></option>
                   <% }) %>

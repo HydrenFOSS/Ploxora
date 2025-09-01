@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('../components/head') %>
 
-<body class="bg-neutral-900 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
@@ -16,7 +16,7 @@
     <main class="flex-1 p-6 space-y-8">
 
       <!-- Nodes Table -->
-      <section class="bg-neutral-800 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+      <section class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">Dashboard Nodes</h2>
           <button onclick="openCNModal()"
@@ -25,6 +25,7 @@
           </button>
         </div>
 
+        <!-- Flash messages -->
         <% if (req.query.msg === "USER_BANNED" || req.query.msg === "USER_UNBANNED" || req.query.msg === "SERVER_CREATED" || req.query.msg === "SERVER_DELETED" || req.query.msg === "NODE_DELETED" || req.query.msg === "NODE-CREATED" || req.query.msg === "IMAGE_CREATED" || req.query.msg === "IMAGE_DELETED") { %>
           <div class="mb-4 p-4 rounded-lg flex items-start space-x-3 
             <%= req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED') ? 'bg-green-600 text-white' : 'bg-blue-600 text-white' %>">
@@ -83,24 +84,23 @@
               <% if (nodes && nodes.length > 0) { %>
                 <% nodes.forEach((node, index) => { %>
                   <tr class="hover:bg-neutral-850 transition">
-                  <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
-                    <div class="relative group flex items-center">
-                    <% if (node.status==="Online" ) { %>
-                      <!-- Green Heart for Online -->
-                      <i data-lucide="heart" fill="currentColor" class="w-5 h-5 text-green-500 animate-pulse"></i>
-                      <% } else { %>
-                        <!-- Red Heart for Offline -->
-                        <i data-lucide="heart" class="w-5 h-5 text-red-500 animate-pulse"></i>
+                    <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
+                      <div class="relative group flex items-center">
+                        <% if (node.status==="Online" ) { %>
+                          <!-- Green Heart for Online -->
+                          <i data-lucide="heart" fill="currentColor" class="w-5 h-5 text-green-500 animate-pulse"></i>
+                        <% } else { %>
+                          <!-- Red Heart for Offline -->
+                          <i data-lucide="heart" class="w-5 h-5 text-red-500 animate-pulse"></i>
                         <% } %>
-                            <!-- Tooltip -->
-                            <span
-                              class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-neutral-800 text-gray-300 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
-                              <%= node.version %>
-                            </span>
-                    </div>
-                  
-                    <%= node.name || "Unnamed Node" %>
-                  </td>
+                        <!-- Tooltip -->
+                        <span
+                          class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-neutral-800 text-gray-300 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                          <%= node.version %>
+                        </span>
+                      </div>
+                      <%= node.name || "Unnamed Node" %>
+                    </td>
 
                     <td class="px-6 py-3 text-gray-300"><%= node.address || "N/A" %></td>
                     <td class="px-6 py-3 text-gray-300"><%= node.port || "N/A" %></td>
@@ -142,7 +142,7 @@
       <!-- Init Command Modal -->
       <div id="initCommandModal"
         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-        <div class="bg-neutral-800 rounded-2xl shadow-lg p-6 w-full max-w-lg border border-[#2a2a2a]">
+        <div class="bg-neutral-950 rounded-2xl shadow-lg p-6 w-full max-w-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-white mb-4">Initialization Command</h2>
           <p class="text-gray-400 mb-3">Run this command on your node server:</p>
 
@@ -162,7 +162,7 @@
 <div id="createNodeModal"
   class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
   <div id="createNodeModalContent"
-       class="bg-neutral-800 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a] transform scale-95 opacity-0 transition-all duration-200">
+       class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a] transform scale-95 opacity-0 transition-all duration-200">
     <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
       <i data-lucide="server" class="w-6 h-6 text-blue-500"></i>
       Create New Node
