@@ -321,6 +321,7 @@ function updateActionButtons(status) {
 }
 
 let isconnectedtodaemon = false;
+let wasfailed = false;
 async function updateVPS() {
   try {
     const res = await fetch(`/server/stats/${containerId}`);
@@ -328,6 +329,10 @@ async function updateVPS() {
     if (!isconnectedtodaemon && res.ok) {
       isconnectedtodaemon = true;
       addLog('SUCCESS', "Connected to the Daemon");
+    } else if (!isconnectedtodaemon && !wasfailed && !res.ok) {
+      wasfailed = true
+      showPopup("error", "Connection Failed", "Failed to connect to the Daemon")
+      addLog('ERROR', "Failed to Connect to the daemon is the Node Offline?");
     }
     // Status
     const statusEl = document.getElementById("vps-status");

@@ -1,150 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('components/head') %>
-<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
-  <!-- Sidebar -->
-  <%- include('components/sidebar.ejs') %>
+  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
-  <!-- Main Content -->
-  <div class="flex-1 flex flex-col">
-    <!-- Navbar -->
-    <%- include('components/nav.ejs') %>
+    <!-- Sidebar -->
+    <%- include('components/sidebar.ejs') %>
 
-    <!-- Dashboard Content -->
-    <main class="p-10">
-      <!-- Overview Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
-          <h3 class="text-sm text-gray-400 mb-2">Total Servers</h3>
-          <p class="text-2xl font-bold text-white"><%= user.servers?.length || 0 %></p>
-        </div>
-        <div class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
-          <h3 class="text-sm text-gray-400 mb-2">Account Type</h3>
-          <p class="text-2xl font-bold text-white"><%= user.admin ? "Admin" : "User" %></p>
-        </div>
-        <div class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
-          <h3 class="text-sm text-gray-400 mb-2">Total Nodes</h3>
-          <p class="text-2xl font-bold text-white"><%= nodes %></p>
-        </div>
-      </div>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Navbar -->
+        <%- include('components/nav.ejs') %>
 
-      <div class="mb-6 text-center">
-  <h2 class="text-3xl font-bold text-white mb-2">VPS Instances</h2>
-  <p class="text-gray-400 text-sm">Manage your vps in seconds!</p>
-</div>
-
-      <div class="flex flex-wrap gap-6">
-        <% if (user.servers && user.servers.length > 0) { %>
-          <% user.servers.forEach(server => { %>
-            <div class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition server-card" data-container-id="<%= server.containerId %>">
-              <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold text-white"><%= server.name || "Empty" %></h3>
-                  <p class="text-gray-400 text-sm">SSH: <%= server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A" %></p>
-                  <p class="text-gray-400 text-sm">Created At: <%= server.createdAt || "Now" %></p>
-                </div>
-                <div class="mt-2 md:mt-0">
-                  <span class="server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">Loading</span>
-                  <span class="text-gray-400 text-xs ml-2">Uptime: <span class="uptime">0s</span></span>
-                </div>
+          <!-- Dashboard Content -->
+          <main class="p-10">
+            <!-- Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div
+                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                <h3 class="text-sm text-gray-400 mb-2">Total Servers</h3>
+                <p class="text-2xl font-bold text-white">
+                  <%= user.servers?.length || 0 %>
+                </p>
               </div>
-
-              <!-- Usage Bars -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div>
-                  <span class="text-gray-400 text-xs">CPU Usage</span>
-                  <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
-                    <div class="cpu-bar bg-green-500 h-3 w-0 transition-all duration-500"></div>
-                  </div>
-                </div>
-                <div>
-                  <span class="text-gray-400 text-xs">Memory Usage</span>
-                  <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
-                    <div class="memory-bar bg-blue-500 h-3 w-0 transition-all duration-500"></div>
-                  </div>
-                </div>
-                <div>
-                  <span class="text-gray-400 text-xs">Disk Usage</span>
-                  <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
-                    <div class="disk-bar bg-yellow-500 h-3 w-0 transition-all duration-500"></div>
-                  </div>
-                </div>
+              <div
+                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                <h3 class="text-sm text-gray-400 mb-2">Account Type</h3>
+                <p class="text-2xl font-bold text-white">
+                  <%= user.admin ? "Admin" : "User" %>
+                </p>
               </div>
-
-              <!-- Network -->
-              <div class="flex justify-between text-xs text-gray-400 mt-4">
-                <span>Inbound: <span class="inbound">0</span> KB</span>
-                <span>Outbound: <span class="outbound">0</span> KB</span>
+              <div
+                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                <h3 class="text-sm text-gray-400 mb-2">Total Nodes</h3>
+                <p class="text-2xl font-bold text-white">
+                  <%= nodes %>
+                </p>
               </div>
             </div>
-          <% }) %>
-        <% } else { %>
-          <p class="text-gray-500 italic text-center">No servers yet.</p>
-        <% } %>
+
+            <div class="mb-6 text-center">
+              <h2 class="text-3xl font-bold text-white mb-2">VPS Instances</h2>
+              <p class="text-gray-400 text-sm">Manage your vps in seconds!</p>
+            </div>
+
+            <div class="flex flex-wrap gap-6">
+              <% if (user.servers && user.servers.length> 0) { %>
+                <% user.servers.forEach(server=> { %>
+                  <div
+                    class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition server-card"
+                    data-container-id="<%= server.containerId %>">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
+                      <div>
+                        <h3 class="text-lg font-semibold text-white">
+                          <%= server.name || "Empty" %>
+                        </h3>
+                        <p class="text-gray-400 text-sm">Created At: <%= server.createdAt || "Now" %>
+                        </p>
+                      </div>
+                      <div class="mt-2 md:mt-0">
+                        <span
+                          class="server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">Loading</span>
+                      </div>
+                    </div>
+
+                    <!-- Usage Bars -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div>
+                        <span class="text-gray-400 text-xs">CPU Usage</span>
+                        <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
+                          <div class="cpu-bar bg-green-500 h-3 w-0 transition-all duration-500"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <span class="text-gray-400 text-xs">Memory Usage</span>
+                        <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
+                          <div class="memory-bar bg-blue-500 h-3 w-0 transition-all duration-500"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <span class="text-gray-400 text-xs">Disk Usage</span>
+                        <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
+                          <div class="disk-bar bg-yellow-500 h-3 w-0 transition-all duration-500"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Network -->
+                    <div class="flex justify-between text-xs text-gray-400 mt-4">
+                      <span>Inbound: <span class="inbound">0</span> KB</span>
+                      <span>Outbound: <span class="outbound">0</span> KB</span>
+                    </div>
+                  </div>
+                  <% }) %>
+                    <% } else { %>
+                      <p class="text-gray-500 italic text-center">No servers yet.</p>
+                      <% } %>
+            </div>
+          </main>
       </div>
-    </main>
-  </div>
 
-  <script>lucide.createIcons();</script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const statusMap = {
-        running: "Online",
-        exited: "Exited",
-        "node missing": "Node Missing",
-        error: "Error"
-      };
+      <script>lucide.createIcons();</script>
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const statusMap = {
+            running: "Online",
+            exited: "Exited",
+            "node missing": "Node Missing",
+            error: "Error"
+          };
 
-      const bgMap = {
-        running: "bg-green-500",
-        exited: "bg-red-500",
-        "node missing": "bg-yellow-500",
-        error: "bg-orange-500",
-        unknown: "bg-gray-500"
-      };
+          const bgMap = {
+            running: "bg-green-500",
+            exited: "bg-red-500",
+            "node missing": "bg-yellow-500",
+            error: "bg-orange-500",
+            unknown: "bg-gray-500"
+          };
 
-      const fetchServerStats = async () => {
-        document.querySelectorAll(".server-card").forEach(async card => {
-          const containerId = card.dataset.containerId;
-          const statusSpan = card.querySelector(".server-status");
-          const cpuBar = card.querySelector(".cpu-bar");
-          const memoryBar = card.querySelector(".memory-bar");
-          const diskBar = card.querySelector(".disk-bar");
-          const inboundEl = card.querySelector(".inbound");
-          const outboundEl = card.querySelector(".outbound");
-          const uptimeEl = card.querySelector(".uptime");
+          // Track which containers are in "error" state
+          const activePopupIds = new Set();
 
-          card.addEventListener("click", () => {
-            window.location.href = `/vps/${containerId}`;
-          });
+          const fetchServerStats = async () => {
+            document.querySelectorAll(".server-card").forEach(async card => {
+              const containerId = card.dataset.containerId;
+              const shortId = containerId.slice(0, 12); // first 12 chars
+              const statusSpan = card.querySelector(".server-status");
+              const cpuBar = card.querySelector(".cpu-bar");
+              const memoryBar = card.querySelector(".memory-bar");
+              const diskBar = card.querySelector(".disk-bar");
+              const inboundEl = card.querySelector(".inbound");
+              const outboundEl = card.querySelector(".outbound");
+              const uptimeEl = card.querySelector(".uptime");
 
-          try {
-            const res = await fetch(`/server/stats/${containerId}`);
-            const data = await res.json();
+              card.addEventListener("click", () => {
+                window.location.href = `/vps/${containerId}`;
+              });
 
-            const rawStatus = data.status || "unknown";
-            statusSpan.textContent = statusMap[rawStatus] || "Unknown";
-            statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap[rawStatus] || bgMap.unknown}`;
+              try {
+                const res = await fetch(`/server/stats/${containerId}`);
 
-            cpuBar.style.width = `${data.cpuPercent || 0}%`;
-            memoryBar.style.width = `${data.memoryMB ? Math.min((data.memoryMB / 1024) * 100, 100) : 0}%`;
-            diskBar.style.width = `${data.diskUsageMB ? Math.min((data.diskUsageMB / 1024) * 100, 100) : 0}%`;
+                if (!res.ok) throw new Error("Bad response");
 
-            inboundEl.textContent = data.network?.inboundKB || 0;
-            outboundEl.textContent = data.network?.outboundKB || 0;
-            uptimeEl.textContent = data.uptime || "0s";
+                const data = await res.json();
 
-          } catch {
-            statusSpan.textContent = "Error";
-            statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;
-          }
+                // ✅ Only update stats if we got valid JSON
+                const rawStatus = data.status || "unknown";
+                statusSpan.textContent = statusMap[rawStatus] || "Unknown";
+                statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap[rawStatus] || bgMap.unknown}`;
+
+                cpuBar.style.width = `${data.cpuPercent || 0}%`;
+                memoryBar.style.width = `${data.memoryMB ? Math.min((data.memoryMB / 1024) * 100, 100) : 0}%`;
+                diskBar.style.width = `${data.diskUsageMB ? Math.min((data.diskUsageMB / 1024) * 100, 100) : 0}%`;
+
+                inboundEl.textContent = data.network?.inboundKB || 0;
+                outboundEl.textContent = data.network?.outboundKB || 0;
+                uptimeEl.textContent = data.uptime || "0s";
+
+                // ✅ Clear error state if it recovers
+                activePopupIds.delete(containerId);
+
+              } catch (err) {
+                // If we were already in error, don’t overwrite again
+                if (!activePopupIds.has(containerId)) {
+                  statusSpan.textContent = "Error";
+                  statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;
+
+                  showPopup(
+                    "error",
+                    `Connection Failed [${shortId}]`,
+                    "Failed to connect to the daemon to get the vps stats"
+                  );
+
+                  activePopupIds.add(containerId);
+                }
+              }
+            });
+          };
+
+
+          fetchServerStats();
+          setInterval(fetchServerStats, 5000);
         });
-      };
+      </script>
+  </body>
 
-      fetchServerStats();
-      setInterval(fetchServerStats, 1000);
-    });
-  </script>
-</body>
 </html>

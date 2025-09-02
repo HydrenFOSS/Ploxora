@@ -663,6 +663,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
       await nodes.set(nodeId, node);
     }
     let version = "Unknown";
+    let fewdata = {}
     try {
       const ver_res = await fetch(
         `http://${node.address}:${node.port}/version?x-verification-key=${node.token}`,
@@ -671,6 +672,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
       if (ver_res.ok) {
         const ver_data = await ver_res.json();
         version = ver_data.version || "Unknown";
+        fewdata = ver_data
       }
     } catch (err) {
     //  logger.error(`Failed to fetch version for node ${nodeId}:`, err.message);
@@ -695,7 +697,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
       node: {
         ...node,
         status,
-        version,
+        fewdata,
       },
       servers: allServers,
       addons: addonManager.loadedAddons
