@@ -11,6 +11,34 @@
     <img src="/uploads/logo.png" alt="Ploxora Logo" class="h-10 w-auto">
     <h1 class="text-xl font-bold text-white"><%= name %></h1>
   </div>
+  <!-- Divider -->
+  <hr class="border-neutral-900 mb-4">
+<div class="relative w-full">
+  <button id="userMenuButton" type="button"
+    class="transition flex items-center gap-3 w-full px-4 py-2 text-left rounded-xl bg-[#0d0d0d] hover:bg-neutral-900 text-white">
+    <img src="<%= user.profilePicture %>" alt="User" class="rounded-full h-8 w-8 border border-neutral-700">
+    <span class="truncate"><%= user.username %></span>
+    <i id="userMenuChevron" data-lucide="chevron-right" class="ml-auto w-4 h-4 transition-transform"></i>
+  </button>
+
+  <div id="userMenu"
+       class="absolute top-1/2 left-[calc(100%+0.5rem)] -translate-y-1/2 w-56
+              bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg z-50
+              transition-all duration-200 ease-out
+              opacity-0 translate-x-2 scale-95 pointer-events-none invisible">
+    <div class="px-4 py-3 text-sm text-gray-300 border-b border-neutral-800">
+      <p class="font-medium truncate"><%= user.username %></p>
+      <p class="text-gray-500 text-xs truncate"><%= user.email %></p>
+    </div>
+    <ul class="py-2 text-white text-sm">
+      <li><a href="/settings" class="block px-4 py-2 hover:bg-neutral-800">Settings</a></li>
+      <li><a href="/logout" class="block px-4 py-2 hover:bg-neutral-800">Logout</a></li>
+    </ul>
+  </div>
+</div>
+
+  <!-- Divider -->
+  <hr class="border-neutral-900 my-4">
 
   <nav class="space-y-3">
     <% if (user.admin) { %>
@@ -67,7 +95,52 @@
     <span class="text-xs text-gray-500">&copy; 2025 Ploxora</span>
   </div>
 </aside>
+<script>
+  const userMenuButton = document.getElementById("userMenuButton");
+  const userMenu = document.getElementById("userMenu");
+  const userMenuChevron = document.getElementById("userMenuChevron");
 
+  function openMenu() {
+    userMenu.classList.remove("opacity-0","translate-x-2","scale-95","pointer-events-none","invisible");
+    userMenuChevron && userMenuChevron.classList.add("rotate-90");
+  }
+  function closeMenu() {
+    userMenu.classList.add("opacity-0","translate-x-2","scale-95","pointer-events-none","invisible");
+    userMenuChevron && userMenuChevron.classList.remove("rotate-90");
+  }
+  function isOpen() {
+    return !userMenu.classList.contains("invisible");
+  }
+
+  if (userMenuButton) {
+    userMenuButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isOpen() ? closeMenu() : openMenu();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (isOpen() && !userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+      closeMenu();
+    }
+  });
+
+  // Optional: on small screens, fall back to opening UNDER the button
+  const mq = window.matchMedia("(max-width: 767px)");
+  function applyMobilePosition() {
+    if (mq.matches) {
+      userMenu.style.left = "0";
+      userMenu.style.top = "100%";
+      userMenu.style.transform = "translateY(0)"; // base; transitions still apply via classes
+    } else {
+      userMenu.style.left = "calc(100% + 0.5rem)";
+      userMenu.style.top = "50%";
+      userMenu.style.transform = "translateY(-50%)";
+    }
+  }
+  applyMobilePosition();
+  mq.addEventListener("change", applyMobilePosition);
+</script>
 <script>
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebarToggle");

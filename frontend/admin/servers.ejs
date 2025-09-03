@@ -112,22 +112,26 @@
 
               <div>
                 <label class="block text-gray-300 mb-1">VPS Name</label>
-                <input type="text" name="name" required
+                <input type="text" name="name" required placeholder="My Cool VPS"
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">GB</label>
-                <input type="text" name="gb" required
+                <input type="text" name="gb" required value="2G"
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">Cores</label>
-                <input type="number" name="cores" required
+                <input type="number" name="cores" required value="1"
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
-
+              <div>
+                <label class="block text-gray-300 mb-1">SSH Port</label>
+                <input type="number" name="port" required value="8445"
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+              </div>
               <!-- User Select -->
               <div>
                 <label class="block text-gray-300 mb-1">Assign User</label>

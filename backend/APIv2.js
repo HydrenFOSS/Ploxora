@@ -167,43 +167,46 @@ router.get("/api/v2/servers", checkApiKey, async (req, res) => {
 });
 
 router.post("/api/v2/servers/create", checkApiKey, express.json(), async (req, res) => {
-  const { name, userId, nodeId, gb, cores } = req.body;
-  if (!name || !userId || !nodeId) return res.status(400).json({ error: "Missing fields" });
+  try {
+    const { name, userId, nodeId, gb, cores, port } = req.body;
+    if (!name || !userId || !nodeId) return res.status(400).json({ error: "Missing fields" });
 
-  const node = await nodes.get(nodeId);
-  if (!node) return res.status(404).json({ error: "NODE_NOT_FOUND" });
+    const node = await nodes.get(nodeId);
+    if (!node) return res.status(404).json({ error: "NODE_NOT_FOUND" });
 
-  const user = await users.get(userId);
-  if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+    const user = await users.get(userId);
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
 
-  // Deploy container on node
-  const deployResp = await fetch(`http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, ram: gb, cores }),
-  });
-  const deployData = await deployResp.json();
-  if (!deployResp.ok) return res.status(500).json({ error: "Failed to deploy", details: deployData });
+    const deployResp = await fetch(`http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, ram: gb, cores, ...(port && { port }) }),
+    });
+    const deployData = await deployResp.json();
+    if (!deployResp.ok) return res.status(500).json({ error: "Failed to deploy", details: deployData });
 
-  const server = {
-    id: uuid(),
-    name,
-    containerId: deployData.containerId,
-    ssh: deployData.ssh,
-    user: userId,
-    node: nodeId,
-    status: "online",
-    createdAt: new Date().toISOString()
-  };
+    const server = {
+      id: uuid(),
+      name,
+      containerId: deployData.containerId,
+      ssh: deployData.ssh,
+      user: userId,
+      node: nodeId,
+      status: "online",
+      createdAt: new Date().toISOString(),
+      ...(port && { port })
+    };
 
-  user.servers = user.servers || [];
-  user.servers.push(server);
-  await users.set(userId, user);
-  await servers.set(server.id, server);
+    user.servers = user.servers || [];
+    user.servers.push(server);
+    await users.set(userId, user);
+    await servers.set(server.id, server);
 
-  res.json({ success: true, server });
+    res.json({ success: true, id: server.id, containerId: server.containerId, message: "Successfully Created Instance" });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to deploy server" });
+  }
 });
-
 router.post("/api/v2/servers/delete/:id", checkApiKey, async (req, res) => {
   const server = await servers.get(req.params.id);
   if (!server) return res.status(404).json({ error: "SERVER_NOT_FOUND" });

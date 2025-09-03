@@ -121,10 +121,9 @@ router.post("/api/v1/nodes/delete", checkApiKey, async (req, res) => {
 
 // ---------- SERVERS ----------
 
-// Deploy new server
-router.post("/api/v1/servers/deploy", checkApiKey, async (req, res) => {
+router.post("/api/v1/servers/deploy", checkApiKey, express.json(), async (req, res) => {
   try {
-    const { name, gb, cores, userId, nodeId } = req.body;
+    const { name, gb, cores, userId, nodeId, port } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).json({ error: "Node not found" });
@@ -138,7 +137,7 @@ router.post("/api/v1/servers/deploy", checkApiKey, async (req, res) => {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ram: gb, cores, name }),
+        body: JSON.stringify({ ram: gb, cores, name, ...(port && { port }) }),
       }
     );
 
@@ -153,7 +152,8 @@ router.post("/api/v1/servers/deploy", checkApiKey, async (req, res) => {
       createdAt: new Date(),
       status: "online",
       user: userId,
-      node: nodeId
+      node: nodeId,
+      ...(port && { port })
     };
 
     user.servers.push(server);

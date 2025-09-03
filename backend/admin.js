@@ -411,7 +411,7 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 */
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, gb, cores, userId, nodeId } = req.body;
+    const { name, gb, cores, port, userId, nodeId } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).send("Node not found");
@@ -419,18 +419,16 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     const user = await users.get(userId);
     if (!user) return res.status(404).send("User not found");
 
-    // Default empty servers array if none
     if (!Array.isArray(user.servers)) {
       user.servers = [];
     }
 
-    // Deploy to node
     const deployRes = await fetch(
       `http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ram: gb, cores, name }),
+        body: JSON.stringify({ ram: gb, cores, name, port }),
       }
     );
 
@@ -443,6 +441,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
       id: uuid(),
       name,
       ssh: result.ssh,
+      port,
       containerId: result.containerId,
       createdAt: new Date(),
       status: "online",
@@ -450,11 +449,9 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
       node: nodeId
     };
 
-    // Save in user
     user.servers.push(server);
     await users.set(userId, user);
 
-    // Save in servers db
     await servers.set(server.id, server);
     logDiscord(`Server Created for ${user.username} as ${name}`, "info")
     res.redirect("/admin/servers?msg=SERVER_CREATED");

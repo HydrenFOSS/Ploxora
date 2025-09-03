@@ -292,7 +292,13 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
     if (!server) {
       return res.status(403).send("You do not have access to this VPS.");
     }
-    res.render("vps", { user, server, name: await getAppName(), addons: addonManager.loadedAddons });
+    let serverip;
+    const node = await nodes.get(server.node);
+    if (!node) return res.status(500).json({ error: "Node not found" });
+    if (node) {
+      serverip = `ssh root@${node.address} -p ${server.port}`
+    }
+    res.render("vps", { user, server, serverip, name: await getAppName(), addons: addonManager.loadedAddons });
   } catch (err) {
     logger.error("VPS page error:", err);
     res.status(500).send("Failed to load VPS page.");

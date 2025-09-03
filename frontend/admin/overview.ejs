@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <%- include('../components/head') %>
@@ -98,8 +99,8 @@
         if (latestVersion === currentVersion) {
           statusEl.innerHTML = 'You are running the latest version: <span class="text-green-400 font-bold">' + currentVersion + '</span> (' + codename + ')';
         } else {
-          const tagUrl = 'tag/' + latestVersion;
-          statusEl.innerHTML = 'A new version is available: <span class="text-red-400 font-bold">' + latestVersion + '</span> (' + codename + ') – You have <span class="font-bold">' + currentVersion + '</span> <a href="https://github.com/HydrenFOSS/ploxora/' + tagUrl + '" class="text-blue-400 underline ml-1">Github Release</a>';
+          const tagUrl = latestVersion;
+          statusEl.innerHTML = 'A new version is available: <span class="text-red-400 font-bold">' + latestVersion + '</span> (' + codename + ') – You have <span class="font-bold">' + currentVersion + '</span> <a href="https://github.com/HydrenFOSS/ploxora/releases/' + tagUrl + '" class="text-blue-400 underline ml-1">Github Release</a>';
         }
       } catch (err) {
         statusEl.textContent = 'Error checking for updates.';
@@ -112,4 +113,3 @@
 
 </body>
 </html>
-
