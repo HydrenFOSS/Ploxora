@@ -1,3 +1,10 @@
+process.on("uncaughtException", err => {
+  console.error("[Uncaught Exception]", err);
+});
+process.on("unhandledRejection", err => {
+  console.error("[Unhandled Rejection]", err);
+});
+
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
@@ -68,7 +75,8 @@ async function ensureDefaultSettings() {
     NAME: process.env.APP_NAME || "Ploxora",
     IsLogs: false,
     ifisLogs: "",
-    Logo: ""
+    Logo: "",
+    registerEnabled: false
   };
   for (const key in defaultSettings) {
     const existing = await settings.get(key);

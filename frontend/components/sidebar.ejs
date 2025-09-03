@@ -46,7 +46,10 @@
        class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="settings" class="w-5 h-5"></i> Settings
     </a>
-
+    <a href="/client/api"
+       class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white transition border border-[#2a2a2a] hover:border-neutral-600">
+      <i data-lucide="key" class="w-5 h-5"></i> Client API
+    </a>
     <% addons.forEach(a => { %>
       <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
         <% a.sidebar.forEach(s => { %>

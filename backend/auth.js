@@ -137,7 +137,7 @@ router.get("/", async (req, res) => {
     else res.clearCookie("SESSION-COOKIE"); // remove invalid cookie
   }
   const name = await getAppName();
-  res.render("login", { error: req.query.err || "", name });
+  res.render("login", { error: req.query.err || "", name, rgenabled: settings.registerEnabled });
 });
 
 /*
@@ -198,6 +198,9 @@ router.get("/logout", async (req, res) => {
 * Version: v1.0.0
 */
 router.get("/register", async (req, res) => {
+  if (!settings.registerEnabled) {
+    return res.redirect('/')
+  }
   const name = await getAppName();
   res.render("register", { error: req.query.err || "", name });
 });
@@ -212,6 +215,9 @@ router.get("/register", async (req, res) => {
 */
 
 router.post("/register", async (req, res) => {
+  if (!settings.registerEnabled) {
+    return res.redirect('/')
+  }
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {

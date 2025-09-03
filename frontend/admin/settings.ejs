@@ -47,7 +47,11 @@
               onchange="updateSetting('IsLogs', this.checked)">
             <label class="text-gray-300">Enable Logs</label>
           </div>
-
+         <div class="flex items-center space-x-2">
+           <input type="checkbox" id="registerEnabled" <%= settings.registerEnabled === "true" ? "checked" : "" %>
+             onchange="updateSetting('registerEnabled', this.checked ? 'true' : 'false')">
+           <label class="text-gray-300">Enable Register</label>
+         </div>
           <!-- Discord Webhook -->
           <div>
             <label class="block text-gray-300 mb-1">Discord Webhook</label>

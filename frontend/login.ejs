@@ -10,7 +10,7 @@
               bg-[size:10px_10px] bg-fixed">
   </div>
     <!-- Login box -->
-    <div class="bg-neutral-950 border border-[#2a2a2a] p-10 shadow-lg w-96 rounded-md text-center my-auto">
+    <div class="bg-neutral-950 border border-[#2a2a2a] p-10 shadow-lg w-96 rounded-md text-center min-h-screen my-auto">
       <div class="mb-6">
         <img src="/uploads/logo.png" alt="Logo" class="h-12 mx-auto mb-2">
         <h1 class="text-2xl font-bold text-white">Welcome Back!</h1>
@@ -66,12 +66,13 @@
   </svg>
   <span>Sign In/Up with Discord</span>
 </a>
-      <p class="text-gray-400 text-sm mt-6">
-        Don’t have an account? 
-        <a href="/register" class="text-white font-semibold hover:underline">Register</a>
-      </p>
+<% if (rgenabled) { %>
+  <p class="text-gray-400 text-sm mt-6">
+    Don’t have an account? 
+    <a href="/register" class="text-white font-semibold hover:underline">Register</a>
+  </p>
+<% } %>
     </div>
-
     <!-- Right gradient -->
     <div class="border-x border-white/10 w-10
                 bg-[image:repeating-linear-gradient(315deg,_rgba(255,255,255,0.08)_0,_rgba(255,255,255,0.08)_1px,_transparent_0,_transparent_50%)] 

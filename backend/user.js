@@ -15,6 +15,7 @@ const router = require('express').Router();
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const Keyv = require("keyv");
+const crypto = require("crypto");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
@@ -65,6 +66,93 @@ router.use(session({
 }));
 
 const addonManager = require("../addons/addon_manager");
+
+/*
+|--------------------------------------------------------------------------
+| Client API System
+|--------------------------------------------------------------------------
+*/
+
+/*
+* Route: GET /client/api
+* Description: Render client API management page.
+*/
+router.get("/client/api", requireLogin, async (req, res) => {
+  try {
+    const user = req.user;
+    const name = await getAppName();
+    res.render("clientapi", {
+      user,
+      name,
+      apikeys: user.clientAPIs || [],
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("ClientAPI page error:", err);
+    res.status(500).send("Failed to load client API page.");
+  }
+});
+
+/*
+* Route: POST /client/api/create
+* Description: Creates a new client API key for the logged-in user.
+*/
+router.post("/client/api/create", requireLogin, async (req, res) => {
+  try {
+    const apiKey = crypto.randomBytes(24).toString("hex");
+
+    const user = req.user;
+    if (!user.clientAPIs) user.clientAPIs = [];
+    user.clientAPIs.push({ key: apiKey, createdAt: Date.now() });
+
+    await users.set(user.id, user);
+
+    res.json({ apiKey, message: "Client API key created successfully" });
+  } catch (err) {
+    logger.error("ClientAPI create error:", err.stack || err.message || err);
+    res.status(500).json({ error: "Failed to create API key" });
+  }
+});
+
+/*
+* Route: DELETE /client/api/delete/:key
+* Description: Deletes a client API key owned by the logged-in user.
+*/
+router.delete("/client/api/delete/:key", requireLogin, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const user = req.user;
+
+    if (!user.clientAPIs) return res.status(404).json({ error: "No API keys found" });
+
+    const before = user.clientAPIs.length;
+    user.clientAPIs = user.clientAPIs.filter(api => api.key !== key);
+
+    if (before === user.clientAPIs.length) {
+      return res.status(404).json({ error: "API key not found" });
+    }
+
+    await users.set(user.id, user);
+    res.json({ message: "API key deleted successfully" });
+  } catch (err) {
+    logger.error("ClientAPI delete error:", err);
+    res.status(500).json({ error: "Failed to delete API key" });
+  }
+});
+
+/*
+* Route: GET /client/api/list
+* Description: Lists all client API keys belonging to logged-in user.
+*/
+router.get("/client/api/list", requireLogin, async (req, res) => {
+  try {
+    const user = req.user;
+    res.json({ keys: user.clientAPIs || [] });
+  } catch (err) {
+    logger.error("ClientAPI list error:", err);
+    res.status(500).json({ error: "Failed to fetch API keys" });
+  }
+});
 
 /*
 * Route: GET /settings

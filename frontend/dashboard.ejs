@@ -18,7 +18,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div
                 class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
-                <h3 class="text-sm text-gray-400 mb-2">Total Servers</h3>
+                <h3 class="text-sm text-gray-400 mb-2">Your Servers</h3>
                 <p class="text-2xl font-bold text-white">
                   <%= user.servers?.length || 0 %>
                 </p>
@@ -32,7 +32,7 @@
               </div>
               <div
                 class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
-                <h3 class="text-sm text-gray-400 mb-2">Total Nodes</h3>
+                <h3 class="text-sm text-gray-400 mb-2">System Nodes</h3>
                 <p class="text-2xl font-bold text-white">
                   <%= nodes %>
                 </p>
@@ -55,7 +55,7 @@
                         <h3 class="text-lg font-semibold text-white">
                           <%= server.name || "Empty" %>
                         </h3>
-                        <p class="text-gray-400 text-sm">Created At: <%= server.createdAt || "Now" %>
+                        <p class="text-gray-400 text-sm">Created At: <%= new Date(server.createdAt).toLocaleString() %>
                         </p>
                       </div>
                       <div class="mt-2 md:mt-0">
@@ -88,8 +88,8 @@
 
                     <!-- Network -->
                     <div class="flex justify-between text-xs text-gray-400 mt-4">
-                      <span>Inbound: <span class="inbound">0</span> KB</span>
-                      <span>Outbound: <span class="outbound">0</span> KB</span>
+                      <p>Inbound: <span class="inbound">0</span> KB</p>
+                      <p>Outbound: <span class="outbound">0</span> KB</p>
                     </div>
                   </div>
                   <% }) %>
@@ -131,7 +131,6 @@
               const diskBar = card.querySelector(".disk-bar");
               const inboundEl = card.querySelector(".inbound");
               const outboundEl = card.querySelector(".outbound");
-              const uptimeEl = card.querySelector(".uptime");
 
               card.addEventListener("click", () => {
                 window.location.href = `/vps/${containerId}`;
@@ -153,15 +152,14 @@
                 memoryBar.style.width = `${data.memoryMB ? Math.min((data.memoryMB / 1024) * 100, 100) : 0}%`;
                 diskBar.style.width = `${data.diskUsageMB ? Math.min((data.diskUsageMB / 1024) * 100, 100) : 0}%`;
 
-                inboundEl.textContent = data.network?.inboundKB || 0;
-                outboundEl.textContent = data.network?.outboundKB || 0;
-                uptimeEl.textContent = data.uptime || "0s";
+                if (inboundEl) inboundEl.textContent = data.network?.inboundKB || 0;
+                if (outboundEl) outboundEl.textContent = data.network?.outboundKB || 0;
 
                 // ✅ Clear error state if it recovers
                 activePopupIds.delete(containerId);
 
               } catch (err) {
-                // If we were already in error, don’t overwrite again
+               console.log(err)
                 if (!activePopupIds.has(containerId)) {
                   statusSpan.textContent = "Error";
                   statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;

@@ -136,7 +136,32 @@ const baseOptions = {
   plugins: {
     legend: { display: false },
     title: { display: false },
-    tooltip: { enabled: false },
+    tooltip: {
+      enabled: true, // ✅ show tooltips
+      backgroundColor: "rgb(23,23,23)", // ~bg-neutral-900
+      titleColor: "#e5e7eb",            // gray-200
+      bodyColor: "#d1d5db",             // gray-300
+      borderColor: "#2a2a2a",      
+      borderWidth: 1,
+      displayColors: false, // removes color box (can set true if you want dataset color too)
+      callbacks: {
+        title: () => null,
+        label: (context) => {
+          // Show all parsed values from dataset
+          let lines = [];
+          if (context.dataset.label) {
+            lines.push(`${context.dataset.label}: ${context.formattedValue}`);
+          } else {
+            // fallback: show all parsed key/value pairs
+            const parsed = context.parsed;
+            for (const key in parsed) {
+              lines.push(`${key}: ${parsed[key]}`);
+            }
+          }
+          return lines;
+        },
+      },
+    },
   },
   layout: { padding: 0 },
   scales: {
@@ -168,7 +193,7 @@ const baseOptions = {
     },
   },
   elements: {
-    point: { radius: 0 },
+    point: { radius: 0, hitRadius: 20 },
     line: { tension: 0.15 },
   },
 };
@@ -224,14 +249,14 @@ const networkData = {
   labels,
   datasets: [
     {
-      label: "Inbound KB",
+      label: "Inbound MB",
       data: Array(20).fill(0),
       borderColor: "rgb(59,130,246)",
       backgroundColor: "rgba(59,130,246,0.2)",
       tension: 0.3,
     },
     {
-      label: "Outbound KB",
+      label: "Outbound MB",
       data: Array(20).fill(0),
       borderColor: "rgb(168,85,247)",
       backgroundColor: "rgba(168,85,247,0.2)",
@@ -375,8 +400,8 @@ async function updateVPS() {
     pushData(cpuChart, data.cpuPercent ?? 0);
     pushData(ramChart, data.memoryMB ?? 0);
     pushData(networkChart, [
-      data.network?.inboundKB ?? 0,
-      data.network?.outboundKB ?? 0,
+      data.network?.inboundKB ?? 0 / 1024,
+      data.network?.outboundKB ?? 0 / 1024,
     ]);
     pushData(diskChart, data.diskUsageMB ?? 0);
   } catch (err) {
