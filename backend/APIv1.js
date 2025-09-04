@@ -94,7 +94,7 @@ router.post("/api/v1/nodes/new", checkApiKey, async (req, res) => {
       if (data && data.countryCode) location = data.countryCode;
     } catch {}
 
-    const node = { id, token, name, address, port, location, status: "Offline", createdAt: new Date().toISOString() };
+    const node = { id, token, name, address, port, location, allocations: [], status: "Offline", createdAt: new Date().toISOString() };
     await nodes.set(id, node);
     res.json({ success: true, node });
   } catch (err) {

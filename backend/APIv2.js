@@ -101,7 +101,7 @@ router.post("/api/v2/nodes/create", checkApiKey, express.json(), async (req, res
   const id = uuid();
   const token = crypto.randomBytes(12).toString("hex");
 
-  const node = { id, name, address, port, token, status: "Offline", createdAt: new Date().toISOString() };
+  const node = { id, name, address, port, token, allocations: [], status: "Offline", createdAt: new Date().toISOString() };
   await nodes.set(id, node);
   res.json({ success: true, node });
 });

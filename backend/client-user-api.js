@@ -233,6 +233,85 @@ router.post("/clientapi/vps/ressh/:containerId", CheckClientAPI, async (req, res
     res.status(500).json({ error: "Failed to regenerate SSH", details: err.message });
   }
 });
+/*
+* Route: GET /clientapi/vps/:containerId
+* Description: Fetch VPS info for a specific container.
+* Security: API key required.
+*/
+router.get("/clientapi/vps/:containerId", CheckClientAPI, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json({ server });
+  } catch (err) {
+    logger.error("[VPS Info] error:", err);
+    res.status(500).json({ error: "Failed to fetch VPS info", details: err.message });
+  }
+});
+
+/*
+* Route: GET /clientapi/vps/:containerId/network
+* Description: Get network allocations for a VPS.
+*/
+router.get("/clientapi/vps/:containerId/network", CheckClientAPI, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json({ allocations: server.allocations || [] });
+  } catch (err) {
+    logger.error("[VPS Network] error:", err);
+    res.status(500).json({ error: "Failed to fetch network allocations", details: err.message });
+  }
+});
+
+/*
+* Route: POST /clientapi/vps/:containerId/edit-name
+* Description: Update VPS name.
+*/
+router.post("/clientapi/vps/:containerId/edit-name", CheckClientAPI, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const { name } = req.body;
+    const user = req.user;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "Invalid name" });
+    }
+
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+    if (!user.servers?.some(s => s.id === serverId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Update in DBs
+    server.name = name.trim();
+    await serversDB.set(serverId, server);
+
+    const userServer = user.servers.find(s => s.id === serverId);
+    if (userServer) userServer.name = server.name;
+    await users.set(user.id, user);
+
+    res.json({ containerId, name: server.name, message: "Server name updated successfully" });
+  } catch (err) {
+    logger.error("[Edit Name] error:", err);
+    res.status(500).json({ error: "Failed to update server name", details: err.message });
+  }
+});
 
 const ploxora_route = "ClientAPI | Author: ma4z | V3";
 module.exports = { router, ploxora_route };

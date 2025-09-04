@@ -16,6 +16,8 @@
 const router = require("express").Router();
 const Logger = require("../utilities/logger");
 const logDiscord = require("../utilities/discordLogging");
+const AuditLogger = require("../utilities/al");
+const audit = new AuditLogger();
 const logger = new Logger({ prefix: "Ploxora-Admin-Router", level: "debug" });
 const multer = require("multer");
 const path = require("path");
@@ -411,24 +413,34 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 */
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, gb, cores, port, userId, nodeId } = req.body;
+    const { name, gb, cores, userId, nodeId, allocationId } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).send("Node not found");
-    
+
+    const port = parseInt(allocationId, 10);
+    const allocation = node.allocations.find(a => a.allocation_port === port);
+    if (!allocation || allocation.isBeingUsed) {
+      return res.status(400).send("Invalid allocation or is being used");
+    }
+
     const user = await users.get(userId);
     if (!user) return res.status(404).send("User not found");
 
-    if (!Array.isArray(user.servers)) {
-      user.servers = [];
-    }
+    if (!Array.isArray(user.servers)) user.servers = [];
 
+    // Deploy VPS using that allocation
     const deployRes = await fetch(
       `http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ram: gb, cores, name, port }),
+        body: JSON.stringify({
+          ram: gb,
+          cores,
+          name,
+          port: allocation.allocation_port
+        })
       }
     );
 
@@ -440,20 +452,26 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     const server = {
       id: uuid(),
       name,
-      ssh: result.ssh,
-      port,
+      ssh: `ssh root@${allocation.domain || allocation.ip} -p ${allocation.allocation_port}`,
       containerId: result.containerId,
       createdAt: new Date(),
       status: "online",
       user: userId,
-      node: nodeId
+      node: node.id,
+      allocation: { domain: allocation.domain, ip: allocation.ip, port: allocation.allocation_port }
     };
 
     user.servers.push(server);
     await users.set(userId, user);
-
     await servers.set(server.id, server);
-    logDiscord(`Server Created for ${user.username} as ${name}`, "info")
+    allocation.isBeingUsed = true;
+    await nodes.set(node.id, node);
+
+    logDiscord(
+      `Server Created for ${user.username} with ${allocation.ip || allocation.domain}:${allocation.allocation_port}`,
+      "info"
+    );
+    await audit.log(req.user, "CREATE_SERVER", `Created server ${server.name} (${server.id}) for ${user.username}`);
     res.redirect("/admin/servers?msg=SERVER_CREATED");
   } catch (err) {
     logger.error("Error creating server:", err);
@@ -506,7 +524,13 @@ router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req,
 
     // Remove from servers DB
     await servers.delete(serverId);
+    const allocation = node.allocations.find(a => a.allocation_port === server.allocation.port);
+    if (allocation) {
+      allocation.isBeingUsed = false;
+      await nodes.set(node.id, node);
+    }
     logDiscord(`Server Deleted of ${user.username} as ${serverId}`, "info")
+    await audit.log(req.user, "DELETE_SERVER", `Deleted server ${server.name} (${server.id}) of user ${user.username}`);
     res.redirect("/admin/servers?msg=SERVER_DELETED");
   } catch (err) {
     logger.error("Error deleting server:", err);
@@ -560,8 +584,8 @@ router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, r
       }
     }
     await nodes.delete(nodeId);
+    await audit.log(req.user, "DELETE_NODE", `Deleted node ${node.name} (${nodeId}) and all linked servers`);
     logDiscord(`Node ${node.name} and all its servers were deleted`, "warn");
-
     res.redirect("/admin/nodes?msg=NODE_DELETED_WITH_SERVERS");
   } catch (err) {
     logger.error("Error deleting node and linked servers:", err);
@@ -605,15 +629,13 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
       name,
       address,
       port,
+      allocations: [],
       location,
       status: "Offline",
       createdAt: new Date().toISOString()
     };
-
-    // Save node into DB (key = id)
     await nodes.set(id, node);
-
-    // Redirect back to nodes page
+    await audit.log(req.user, "CREATE_NODE", `Created node ${node.name} (${node.id}) at ${node.address}:${node.port}`);
     res.redirect("/admin/nodes?msg=NODE-CREATED");
   } catch (error) {
     logger.error("Error creating node:", error);
@@ -703,6 +725,100 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
   } catch (err) {
     logger.error("Error in /admin/node/:id:", err);
     res.status(500).send("Failed to fetch node info");
+  }
+});
+/*
+* Route: /admin/nodes/:id/allocations/add
+* Method: POST
+* Description: Add new allocations (supports single port or range).
+* Body: { portRange, domain?, ip? }
+* Params: id (Node ID)
+*/
+router.post("/admin/nodes/:id/allocations/add", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const node = await nodes.get(nodeId);
+    if (!node) return res.status(404).send("Node not found");
+
+    const { portRange, domain, ip } = req.body;
+    if (!portRange) return res.status(400).send("Port range required");
+
+    let ports = [];
+
+    if (portRange.includes("-")) {
+      // Range e.g. 3000-3200
+      const [start, end] = portRange.split("-").map(p => parseInt(p, 10));
+      if (isNaN(start) || isNaN(end) || start > end) {
+        return res.status(400).send("Invalid port range");
+      }
+      for (let p = start; p <= end; p++) {
+        ports.push(p);
+      }
+    } else {
+      // Single port
+      const p = parseInt(portRange, 10);
+      if (isNaN(p)) return res.status(400).send("Invalid port");
+      ports.push(p);
+    }
+
+    // Ensure allocations array exists
+    if (!Array.isArray(node.allocations)) {
+      node.allocations = [];
+    }
+
+    // Add each port as allocation
+    for (const port of ports) {
+      node.allocations.push({
+        name: `alloc-${port}`,
+        allocation_port: port,
+        domain: domain || null,
+        ip: ip || null,
+        isBeingUsed: false,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    await nodes.set(nodeId, node);
+
+    logDiscord(`Allocations added to node ${node.name}: ${ports.join(", ")}`, "info");
+    res.redirect(`/admin/node/${nodeId}?msg=ALLOCATIONS_ADDED`);
+  } catch (err) {
+    logger.error("Error adding allocations:", err);
+    res.status(500).send("Failed to add allocations");
+  }
+});
+
+/*
+* Route: /admin/nodes/edit/:id
+* Method: POST
+* Description: Edit a node’s details.
+* Body: { name?, address?, port?, ram?, cores? }
+* Params: id (Node ID)
+* Version: v1.0.0
+*/
+router.post("/admin/nodes/edit/:id", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const node = await nodes.get(nodeId);
+
+    if (!node) return res.status(404).send("Node not found");
+
+    const { name, address, port, ram, cores } = req.body;
+
+    if (name) node.name = name;
+    if (address) node.address = address;
+    if (port) node.port = port;
+    if (ram) node.ram = ram;
+    if (cores) node.cores = cores;
+
+    await nodes.set(nodeId, node);
+
+    logDiscord(`Node ${node.name} updated (details edited).`, "info");
+    await audit.log(req.user, "EDIT_NODE", `Updated node ${node.name} (${node.id}) with new details`);
+    res.redirect(`/admin/node/${nodeId}?msg=NODE_UPDATED`);
+  } catch (err) {
+    logger.error("Error updating node:", err);
+    res.status(500).send("Failed to update node");
   }
 });
 /*
@@ -798,7 +914,7 @@ router.post("/admin/users/ban/:id", requireAdmin, async (req, res) => {
 
     user.banned = true; // mark as banned
     await users.set(id, user);
-
+    await audit.log(req.user, "BAN_USER", `Banned user ${user.username} (${id})`);
     res.redirect("/admin/users?msg=USER_BANNED");
   } catch (err) {
     logger.error("Ban user error:", err);
@@ -821,7 +937,7 @@ router.post("/admin/users/unban/:id", requireAdmin, async (req, res) => {
 
     user.banned = false; // remove ban
     await users.set(id, user);
-
+    await audit.log(req.user, "UNBAN_USER", `Unbanned user ${user.username} (${id})`);
     res.redirect("/admin/users?msg=USER_UNBANNED");
   } catch (err) {
     logger.error("Unban user error:", err);
@@ -839,11 +955,34 @@ router.post("/admin/users/delete/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     await users.delete(id);
+    await audit.log(req.user, "DELETE_USER", `Deleted user with ID ${id}`);
     res.redirect("/admin/users");
   } catch (err) {
     logger.error("Delete user error:", err);
     res.status(500).send("Failed to delete user");
   }
 });
+/*
+* Route: /admin/audit-logs
+* Method: GET
+* Description: Render the admin audit logs page.
+* Version: v1.0.0
+*/
+router.get("/admin/audit-logs", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const logs = await audit.getLogs();
+    res.render("admin/audit_logs", {
+      name: await getAppName(),
+      user: req.user,
+      logs: logs.reverse(),
+      req,
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("Error loading audit logs:", err);
+    res.status(500).send("Failed to load audit logs");
+  }
+});
+
 const ploxora_route = "Admin | Author: ma4z | V1"
 module.exports = { router,ploxora_route };

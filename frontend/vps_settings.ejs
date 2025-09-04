@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('components/head') %>
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+
+  <!-- Sidebar -->
+  <%- include('components/sidebar.ejs') %>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Navbar -->
+    <%- include('components/nav.ejs') %>
+
+    <!-- Settings Page -->
+    <main class="p-6 flex flex-col space-y-6">
+      <%- include('components/vpsnav.ejs') %>
+    </div>
+      <!-- VPS Settings Card -->
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] space-y-6">
+        <h1 class="text-2xl font-bold text-gray-200">VPS Settings</h1>
+
+        <div class="flex flex-col space-y-2">
+            <label for="vps-name" class="text-sm font-medium text-gray-300">Server Name</label>
+            <div class="flex items-center gap-2">
+                <input id="vps-name" type="text" value="<%= server.name || 'Unnamed VPS' %>"
+                    class="flex-1 px-3 py-2 rounded-lg bg-neutral-900 border border-[#2a2a2a] focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-200 font-medium"
+                    placeholder="Enter new VPS name" />
+                <button id="btn-save-name"
+                    class="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 font-semibold shadow-sm transition">
+                    Save
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 italic">
+                ⚠️ This does <span class="font-semibold text-gray-300">not</span> update the hostname of your VPS. It’s only for
+                display inside the panel.
+            </p>
+            <p id="name-status" class="text-xs text-gray-500"></p>
+        
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+const containerId = "<%= server.containerId %>";
+
+document.getElementById("btn-save-name").addEventListener("click", async () => {
+  const newName = document.getElementById("vps-name").value.trim();
+  const statusEl = document.getElementById("name-status");
+
+  if (!newName) {
+    statusEl.textContent = "❌ Name cannot be empty.";
+    statusEl.className = "text-xs text-red-500";
+    return;
+  }
+
+  statusEl.textContent = "Saving...";
+  statusEl.className = "text-xs text-gray-400";
+
+  try {
+    const res = await fetch(`/vps/${containerId}/edit-name`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      statusEl.textContent = data.message;
+      statusEl.className = "text-xs text-emerald-500";
+    } else {
+      statusEl.textContent = "❌ " + (data.error || "Failed to update name.");
+      statusEl.className = "text-xs text-red-500";
+    }
+  } catch (err) {
+    statusEl.textContent = "❌ Error saving name.";
+    statusEl.className = "text-xs text-red-500";
+    console.error(err);
+  }
+});
+lucide.createIcons();
+</script>
+
+</body>
+</html>

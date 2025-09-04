@@ -53,7 +53,7 @@
             </div>
 
             <!-- Tab Switcher -->
-            <div class="flex space-x-4">
+            <div class="flex flex-wrap gap-4">
               <button onclick="switchTab('stats')"
                 class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800"
                 id="tab-stats">Node Stats</button>
@@ -66,9 +66,10 @@
               <button onclick="switchTab('config')"
                 class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800"
                 id="tab-config">Configuration</button>
+              <button onclick="switchTab('allocations')"
+                class="px-4 py-2 bg-neutral-900 border border-[#2a2a2a] rounded-lg hover:bg-neutral-800"
+                id="tab-allocations">Allocations</button>
             </div>
-
-
             <!-- Node Stats Section -->
             <div id="tab-content-stats" class="space-y-6">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,7 +119,7 @@
                   class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a] flex flex-col items-center justify-center">
                   <h2 class="text-xl font-semibold text-white mb-4">Node Hardware</h2>
                   <p class="text-2xl font-bold text-gray-300">
-                    <%= node.fewdata.os %> 
+                    <%= node.fewdata.os %>
                   </p>
                 </div>
 
@@ -141,14 +142,15 @@
 
                 <!-- Note -->
                 <p class="text-gray-400 mb-4">
-                  Put this file in the daemon directory with file name <span class="bg-neutral-800 px-1 rounded-md">config.json</span>
+                  Put this file in the daemon directory with file name <span
+                    class="bg-neutral-800 px-1 rounded-md">config.json</span>
                 </p>
 
                 <!-- Config Display -->
                 <pre id="configContent"
                   class="bg-neutral-900 p-4 rounded-lg text-green-400 text-sm overflow-x-auto h-auto"></pre>
                 <p class="text-gray-400 mt-3">
-                 Or use initialize command
+                  Or use initialize command
                 </p>
 
                 <!-- Initialization Command Button -->
@@ -158,7 +160,144 @@
                 </button>
               </div>
             </div>
+            <!-- Allocations Section -->
+            <div id="tab-content-allocations" class="hidden space-y-6">
+              <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+                <h2 class="text-xl font-semibold text-white mb-4">Allocations</h2>
 
+                <!-- Allocations Table -->
+                <table id="allocationsTable" class="w-full text-left text-gray-300 mb-6">
+                  <thead>
+                    <tr class="border-b border-[#2a2a2a]">
+                      <th class="py-2">Port</th>
+                      <th class="py-2">Domain</th>
+                      <th class="py-2">IP</th>
+                      <th class="py-2">Used?</th>
+                    </tr>
+                  </thead>
+                  <tbody id="allocationsBody">
+                    <% if (node.allocations && node.allocations.length> 0) { %>
+                      <% node.allocations.forEach((alloc, index)=> { %>
+                        <tr class="border-b border-[#2a2a2a] allocation-row">
+                          <td class="py-2 font-mono">
+                            <%= alloc.allocation_port %>
+                          </td>
+                          <td class="py-2">
+                            <%= alloc.domain || "-" %>
+                          </td>
+                          <td class="py-2">
+                            <%= alloc.ip || "-" %>
+                          </td>
+                          <td class="py-2">
+                            <%= alloc.isBeingUsed ? "✅ Yes" : "❌ No" %>
+                          </td>
+                        </tr>
+                        <% }) %>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="4" class="py-4 text-center text-gray-500">No allocations yet.</td>
+                            </tr>
+                            <% } %>
+                  </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div id="paginationControls" class="flex justify-center gap-2 mt-4"></div>
+
+                <!-- Add Allocations Form -->
+                <form action="/admin/nodes/<%= node.id %>/allocations/add" method="POST" class="space-y-4">
+                  <div>
+                    <label class="block text-sm mb-1">Port or Range (e.g. 3000 or 3000-3200)</label>
+                    <input type="text" name="portRange" required
+                      class="w-full bg-neutral-900 border border-[#2a2a2a] rounded-lg px-3 py-2 text-gray-200" />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm mb-1">Domain</label>
+                    <input type="text" name="domain"
+                      class="w-full bg-neutral-900 border border-[#2a2a2a] rounded-lg px-3 py-2 text-gray-200" />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm mb-1">IP</label>
+                    <input type="text" name="ip"
+                      class="w-full bg-neutral-900 border border-[#2a2a2a] rounded-lg px-3 py-2 text-gray-200" />
+                  </div>
+
+                  <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">Add
+                    Allocation(s)</button>
+                </form>
+              </div>
+            </div>
+            <script>
+              document.addEventListener("DOMContentLoaded", () => {
+                const rows = document.querySelectorAll(".allocation-row");
+                const rowsPerPage = 10; // allocations per page
+                const totalPages = Math.ceil(rows.length / rowsPerPage);
+                const paginationControls = document.getElementById("paginationControls");
+
+                function renderPagination(currentPage) {
+                  paginationControls.innerHTML = "";
+
+                  function createButton(page, text = null, disabled = false) {
+                    const btn = document.createElement("button");
+                    btn.innerText = text || page;
+                    btn.disabled = disabled;
+                    btn.className =
+                      "px-3 py-1 rounded-lg border border-[#2a2a2a] " +
+                      (page === currentPage
+                        ? "bg-blue-600 text-white"
+                        : "bg-neutral-900 text-gray-300 hover:bg-neutral-800");
+                    if (!disabled) btn.onclick = () => showPage(page);
+                    paginationControls.appendChild(btn);
+                  }
+
+                  // Always show "Page 1"
+                  createButton(1);
+
+                  // If currentPage > 4, show ellipsis
+                  if (currentPage > 4) {
+                    const ellipsis = document.createElement("span");
+                    ellipsis.innerText = "...";
+                    ellipsis.className = "px-2 text-gray-400";
+                    paginationControls.appendChild(ellipsis);
+                  }
+
+                  // Show middle pages around currentPage
+                  const start = Math.max(2, currentPage - 2);
+                  const end = Math.min(totalPages - 1, currentPage + 2);
+
+                  for (let i = start; i <= end; i++) {
+                    createButton(i);
+                  }
+
+                  // If currentPage < totalPages - 3, show ellipsis
+                  if (currentPage < totalPages - 3) {
+                    const ellipsis = document.createElement("span");
+                    ellipsis.innerText = "...";
+                    ellipsis.className = "px-2 text-gray-400";
+                    paginationControls.appendChild(ellipsis);
+                  }
+
+                  // Always show last page if > 1
+                  if (totalPages > 1) {
+                    createButton(totalPages);
+                  }
+                }
+
+                function showPage(page) {
+                  rows.forEach((row, i) => {
+                    row.style.display =
+                      i >= (page - 1) * rowsPerPage && i < page * rowsPerPage ? "" : "none";
+                  });
+                  renderPagination(page);
+                }
+
+                if (totalPages > 1) {
+                  showPage(1);
+                }
+              });
+            </script>
             <!-- Servers Section -->
             <div id="tab-content-servers" class="hidden space-y-4">
               <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
@@ -201,24 +340,25 @@
 
           </main>
           <!-- Init Command Modal -->
-      <div id="initCommandModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-        <div class="bg-neutral-950 rounded-2xl shadow-lg p-6 w-full max-w-lg border border-[#2a2a2a]">
-          <h2 class="text-xl font-semibold text-white mb-4">Initialization Command</h2>
-          <p class="text-gray-400 mb-3">Run this command on your node server:</p>
+          <div id="initCommandModal"
+            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div class="bg-neutral-950 rounded-2xl shadow-lg p-6 w-full max-w-lg border border-[#2a2a2a]">
+              <h2 class="text-xl font-semibold text-white mb-4">Initialization Command</h2>
+              <p class="text-gray-400 mb-3">Run this command on your node server:</p>
 
-          <pre id="initCommandText" class="bg-neutral-900 p-3 rounded-lg text-green-400 text-sm overflow-x-auto"></pre>
+              <pre id="initCommandText"
+                class="bg-neutral-900 p-3 rounded-lg text-green-400 text-sm overflow-x-auto"></pre>
 
-          <div class="flex justify-end space-x-3 mt-5">
-            <button onclick="closeInitComd()" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg">
-              Close
-            </button>
-            <button onclick="copyInitComd()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
-              Copy
-            </button>
+              <div class="flex justify-end space-x-3 mt-5">
+                <button onclick="closeInitComd()" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg">
+                  Close
+                </button>
+                <button onclick="copyInitComd()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
+                  Copy
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
       </div>
 
       <!-- Charts + Tabs -->
@@ -294,92 +434,92 @@
 
         loadConfig()
         function closeInitComd() {
-      document.getElementById("initCommandModal").classList.add("hidden");
-    }
-    function copyInitComd() {
-      const text = document.getElementById("initCommandText").textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-      });
-    }
-    async function openInitComd(nodeId) {
-      try {
-        const res = await fetch(`/admin/node/${nodeId}/data`);
-        const data = await res.json();
+          document.getElementById("initCommandModal").classList.add("hidden");
+        }
+        function copyInitComd() {
+          const text = document.getElementById("initCommandText").textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            alert("Copied to clipboard!");
+          });
+        }
+        async function openInitComd(nodeId) {
+          try {
+            const res = await fetch(`/admin/node/${nodeId}/data`);
+            const data = await res.json();
 
-        if (!data.success) return alert("Failed to fetch node info");
+            if (!data.success) return alert("Failed to fetch node info");
 
-        const node = data.node;
-        const fullUrl = `${window.location.protocol}//${window.location.host}`;
-        const cmd = `npm run initialize -- --key ${node.token} --ploxora ${fullUrl}`;
+            const node = data.node;
+            const fullUrl = `${window.location.protocol}//${window.location.host}`;
+            const cmd = `npm run initialize -- --key ${node.token} --ploxora ${fullUrl}`;
 
-        document.getElementById("initCommandText").textContent = cmd;
-        document.getElementById("initCommandModal").classList.remove("hidden");
-      } catch (err) {
-        console.error("Init command error:", err);
-        alert("Could not load init command:", err);
-      }
-    }
-async function getltsdaemonver() {
-  try {
-    const res = await fetch("https://ma4z.pages.dev/repo/version_library.json");
+            document.getElementById("initCommandText").textContent = cmd;
+            document.getElementById("initCommandModal").classList.remove("hidden");
+          } catch (err) {
+            console.error("Init command error:", err);
+            alert("Could not load init command:", err);
+          }
+        }
+        async function getltsdaemonver() {
+          try {
+            const res = await fetch("https://ma4z.pages.dev/repo/version_library.json");
 
-    if (!res.ok) {
-      console.error("Sorry I can't fetch daemon latest version, maybe I f**ked up?");
-      document.getElementById("lts_ver").value = "Error fetching version";
-      return;
-    }
+            if (!res.ok) {
+              console.error("Sorry I can't fetch daemon latest version, maybe I f**ked up?");
+              document.getElementById("lts_ver").value = "Error fetching version";
+              return;
+            }
 
-    const response = await res.json();
-    const latestVersion = response["hydren:stable"]?.ploxoradaemon?.versions?.latest;
+            const response = await res.json();
+            const latestVersion = response["hydren:stable"]?.ploxoradaemon?.versions?.latest;
 
-    document.getElementById("lts_ver").textContent = "Latest Version: "+ latestVersion || "N/A";
-  } catch (err) {
-    console.error("Error fetching daemon latest version:", err);
-    document.getElementById("lts_ver").value = "Error fetching version";
-  }
-}
+            document.getElementById("lts_ver").textContent = "Latest Version: " + latestVersion || "N/A";
+          } catch (err) {
+            console.error("Error fetching daemon latest version:", err);
+            document.getElementById("lts_ver").value = "Error fetching version";
+          }
+        }
 
-    getltsdaemonver();
+        getltsdaemonver();
       </script>
-<script>
-(function() {
-  const pre = document.getElementById('configContent');
-  if (!pre || pre.tagName !== 'PRE') return;
+      <script>
+        (function () {
+          const pre = document.getElementById('configContent');
+          if (!pre || pre.tagName !== 'PRE') return;
 
-  function syntaxHighlight(json) {
-    // Escape HTML
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // Highlight
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\d+)/g, function(match) {
-      let cls = 'text-neutral-950';
-      if (/^"/.test(match)) {
-        cls = /:$/.test(match) ? 'text-blue-700 font-bold' : 'text-green-700';
-      } else if (/true|false/.test(match)) {
-        cls = 'text-purple-700';
-      } else if (/null/.test(match)) {
-        cls = 'text-red-700';
-      } else {
-        cls = 'text-orange-700';
-      }
-      return `<span class="${cls}">${match}</span>`;
-    });
-  }
+          function syntaxHighlight(json) {
+            // Escape HTML
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Highlight
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\d+)/g, function (match) {
+              let cls = 'text-neutral-950';
+              if (/^"/.test(match)) {
+                cls = /:$/.test(match) ? 'text-blue-700 font-bold' : 'text-green-700';
+              } else if (/true|false/.test(match)) {
+                cls = 'text-purple-700';
+              } else if (/null/.test(match)) {
+                cls = 'text-red-700';
+              } else {
+                cls = 'text-orange-700';
+              }
+              return `<span class="${cls}">${match}</span>`;
+            });
+          }
 
-  try {
-    const jsonText = pre.innerText;
-    const json = JSON.stringify(JSON.parse(jsonText), null, 2);
-    pre.innerHTML = syntaxHighlight(json);
-    pre.style.whiteSpace = 'pre';
-    pre.style.fontFamily = 'monospace';
-    pre.style.padding = '0.5rem';
-    pre.style.overflow = 'auto';
-  } catch(e) {
-    pre.innerText = 'Invalid JSON';
-    console.error('Invalid JSON:', e);
-  }
-})();
-</script>
+          try {
+            const jsonText = pre.innerText;
+            const json = JSON.stringify(JSON.parse(jsonText), null, 2);
+            pre.innerHTML = syntaxHighlight(json);
+            pre.style.whiteSpace = 'pre';
+            pre.style.fontFamily = 'monospace';
+            pre.style.padding = '0.5rem';
+            pre.style.overflow = 'auto';
+          } catch (e) {
+            pre.innerText = 'Invalid JSON';
+            console.error('Invalid JSON:', e);
+          }
+        })();
+      </script>
       <script>lucide.createIcons();</script>
   </body>
 

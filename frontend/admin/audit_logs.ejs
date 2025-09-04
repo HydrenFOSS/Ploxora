@@ -1,0 +1,46 @@
+<%- include('../components/head') %>
+<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+
+  <%- include('../components/admin_sidebar.ejs') %>
+
+  <div class="flex-1 flex flex-col">
+    <%- include('../components/nav.ejs') %>
+
+    <main class="p-6 space-y-8">
+      <section>
+        <h2 class="text-2xl font-semibold text-white tracking-wide mb-4">Audit Logs</h2>
+
+        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
+                <th class="px-6 py-3 rounded-l-lg">Timestamp</th>
+                <th class="px-6 py-3">Admin</th>
+                <th class="px-6 py-3">Action</th>
+                <th class="px-6 py-3 rounded-r-lg">Details</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-800 text-gray-400">
+              <% if (logs && logs.length > 0) { %>
+                <% logs.forEach(log => { %>
+                  <tr class="hover:bg-neutral-950 transition">
+                    <td class="px-6 py-3 text-gray-300"><%= new Date(log.timestamp).toLocaleString() %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= log.admin || "-" %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= log.action || "-" %></td>
+                    <td class="px-6 py-3 text-gray-300"><%= log.details || "-" %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" class="text-center px-6 py-6 text-gray-500 italic">No audit logs found.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>

@@ -1,3 +1,21 @@
+/**
+ * --------------------------------------------------------------------------
+ * Ploxora VPS Management Dashboard
+ * --------------------------------------------------------------------------
+ * Version: 1.0.0-develop
+ * Codename: Espresso
+ *
+ * WARNING: All source code in this project is proprietary. No part of this
+ * code may be copied, redistributed, or used without explicit permission 
+ * from CarbonLabs or HydrenLabs.
+ *
+ * Unauthorized use, duplication, or distribution is strictly prohibited.
+ * By using this software, you agree to abide by these restrictions.
+ *
+ * © 2025 CarbonLabs / HydrenLabs. All rights reserved.
+ */
+
+
 process.on("uncaughtException", err => {
   console.error("[Uncaught Exception]", err);
 });

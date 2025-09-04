@@ -112,7 +112,7 @@
 
               <div>
                 <label class="block text-gray-300 mb-1">VPS Name</label>
-                <input type="text" name="name" required placeholder="My Cool VPS"
+                <input type="text" name="name" required placeholder="My Cool VPS" oninput="this.value = this.value.replace(/\s/g, '')"
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
@@ -125,11 +125,6 @@
               <div>
                 <label class="block text-gray-300 mb-1">Cores</label>
                 <input type="number" name="cores" required value="1"
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
-              </div>
-              <div>
-                <label class="block text-gray-300 mb-1">SSH Port</label>
-                <input type="number" name="port" required value="8445"
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
               <!-- User Select -->
@@ -146,14 +141,21 @@
               <!-- Node Select -->
               <div>
                 <label class="block text-gray-300 mb-1">Assign Node</label>
-                <select name="nodeId" required
+                <select id="nodeSelect" name="nodeId" required
                   class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  <option value="">-- Select Node --</option>
                   <% nodes.forEach(n=> { %>
                     <option value="<%= n.id %>"><%= n.name || n.address || n.id %></option>
                   <% }) %>
                 </select>
               </div>
-
+              <div>
+                <label class="block text-gray-300 mb-1">Assign Allocation (USED FOR SSH ONLY!)</label>
+                <select id="allocationSelect" name="allocationId" required disabled
+                 class="w-full overflow-y-auto p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  <option value="">-- Select Node First --</option>
+                </select>
+              </div>
               <div class="flex justify-end space-x-3 pt-4">
                 <button type="button" onclick="closeCNModal()"
                   class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white transition">
@@ -167,6 +169,58 @@
             </form>
           </div>
         </section>
+<script>
+  const nodes = <%- JSON.stringify(nodes) %>;
+
+  const nodeSelect = document.getElementById("nodeSelect");
+  const allocationSelect = document.getElementById("allocationSelect");
+
+  nodeSelect.addEventListener("change", function () {
+    const selectedNodeId = this.value;
+    allocationSelect.innerHTML = "";
+
+    if (!selectedNodeId) {
+      allocationSelect.disabled = true;
+      allocationSelect.innerHTML = '<option value="">-- Select Node First --</option>';
+      return;
+    }
+
+    const node = nodes.find(n => n.id === selectedNodeId);
+
+    if (!node || !node.allocations) {
+      allocationSelect.disabled = true;
+      allocationSelect.innerHTML = '<option value="">No allocations found</option>';
+      return;
+    }
+
+    const freeAllocations = node.allocations.filter(a => !a.isBeingUsed);
+
+    if (freeAllocations.length === 0) {
+      allocationSelect.disabled = true;
+      allocationSelect.innerHTML = '<option value="">No free ports</option>';
+      return;
+    }
+
+    // ✅ Only take first 96 ports
+    freeAllocations.slice(0, 96).forEach((a, i) => {
+      const opt = document.createElement("option");
+      opt.value = `${a.allocation_port}`;
+      opt.textContent = `Port ${a.allocation_port}`;
+      allocationSelect.appendChild(opt);
+    });
+
+    // If more than 96, show a "truncated" note
+    if (freeAllocations.length > 96) {
+      const opt = document.createElement("option");
+      opt.disabled = true;
+      opt.textContent = `... and ${freeAllocations.length - 96} more ports not shown`;
+      allocationSelect.appendChild(opt);
+    }
+
+    allocationSelect.disabled = false;
+  });
+</script>
+
 
         <script>
           document.getElementById("createServerForm").addEventListener("submit", function () {

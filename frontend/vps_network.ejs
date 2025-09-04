@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('components/head') %>
+<body class="bg-neutral-950 text-gray-100 font-[Figtree] min-h-screen flex">
+
+  <!-- Sidebar -->
+  <%- include('components/sidebar.ejs') %>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Navbar -->
+    <%- include('components/nav.ejs') %>
+
+    <!-- Page Content -->
+    <main class="p-6 flex flex-col space-y-6">
+      <%- include('components/vpsnav.ejs') %>
+    </div>
+          <!-- Network Allocation -->
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+        <h1 class="text-2xl font-bold text-gray-200 mb-4">Network Allocation</h1>
+
+        <% if (server.allocation) { %>
+          <div class="overflow-x-auto">
+            <table class="w-full border border-[#2a2a2a] rounded-xl overflow-hidden text-sm">
+              <thead class="bg-neutral-900 text-gray-400 uppercase text-xs">
+                <tr>
+                  <th class="px-4 py-2 text-left">Domain</th>
+                  <th class="px-4 py-2 text-left">IP</th>
+                  <th class="px-4 py-2 text-left">Port</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="hover:bg-neutral-900 transition">
+                  <td class="px-4 py-2 text-emerald-400"><%= server.allocation.domain || "N/A" %></td>
+                  <td class="px-4 py-2 text-blue-400"><%= server.allocation.ip %></td>
+                  <td class="px-4 py-2 text-yellow-400"><%= server.allocation.port %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <p class="text-gray-500 italic">No network allocation found.</p>
+        <% } %>
+      </div>
+    </main>
+  </div>
+
+<script>
+lucide.createIcons();
+</script>
+</body>
+</html>

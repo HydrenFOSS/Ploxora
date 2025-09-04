@@ -429,6 +429,111 @@ router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
     res.status(500).json({ error: "Failed to perform action", details: err.message });
   }
 });
+/*
+* Route: GET /vps/:containerId/network
+* Description: Render VPS Network Allocations page.
+* Validations: Ensures user owns requested VPS.
+* Version: v1.0.0
+*/
+router.get("/vps/:containerId/network", requireLogin, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+
+    // Check if user owns this server
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).send("You do not have access to this VPS.");
+    }
+
+    // Render with allocations
+    res.render("vps_network", {
+      user,
+      server,
+      allocations: server.allocations || [],
+      name: await getAppName(),
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("VPS Network page error:", err);
+    res.status(500).send("Failed to load VPS Network page.");
+  }
+});
+
+/*
+* Route: POST /vps/:containerId/edit-name
+* Description: Update the name of a VPS server.
+* Body: { name: "newName" }
+* Validations: Must own server, name must not be empty.
+* Version: v1.0.0
+*/
+router.post("/vps/:containerId/edit-name", requireLogin, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const { name } = req.body;
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return res.status(400).json({ error: "Invalid name" });
+    }
+
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+
+    // Check ownership
+    if (!req.user.servers?.some(s => s.id === serverId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Update server in DB
+    server.name = name.trim();
+    await serversDB.set(serverId, server);
+
+    // Update user’s copy
+    const userServer = req.user.servers.find(s => s.id === serverId);
+    if (userServer) userServer.name = server.name;
+    await users.set(req.user.id, req.user);
+
+    res.json({ 
+      containerId, 
+      name: server.name, 
+      message: "Server name updated successfully" 
+    });
+
+  } catch (err) {
+    logger.error("[VPS Edit Name] error:", err);
+    res.status(500).json({ error: "Failed to update server name", details: err.message });
+  }
+});
+/*
+* Route: GET /vps/:containerId/settings
+* Description: VPS Settings page.
+* Validations: Ensures user owns the VPS.
+* Version: v1.0.0
+*/
+router.get("/vps/:containerId/settings", requireLogin, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+
+    // Check if user owns this server
+    const server = user.servers?.find(s => s.containerId === containerId);
+    if (!server) {
+      return res.status(403).send("You do not have access to this VPS.");
+    }
+
+    res.render("vps_settings", {
+      user,
+      server,
+      name: await getAppName(),
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("VPS Settings page error:", err);
+    res.status(500).send("Failed to load VPS Settings page.");
+  }
+});
 
 const ploxora_route = "User Pages | Author: ma4z | V1"
 module.exports = { router,ploxora_route };

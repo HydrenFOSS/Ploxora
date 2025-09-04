@@ -1,32 +1,33 @@
 <!-- VPS Navbar -->
 <div class="bg-neutral-950 border border-[#2a2a2a] px-6 py-3 flex items-center gap-4 rounded-2xl">
-  <a href="/vps/<%= server.containerId %>/"
-     class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
-    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-    Overview
-  </a>
- <!-- <a href="/vps/<%= server.containerId %>/settings"
-     class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
-    <i data-lucide="settings" class="w-5 h-5"></i>
-    Settings
-  </a>
-  <a href="/vps/<%= server.containerId %>/logs"
-     class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
-    <i data-lucide="ScrollText" class="w-5 h-5"></i>
-    Logs
-  </a> -->
-<% addons.forEach(a => { %>
-  <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
-    <% a.sidebar.forEach(s => { %>
-      <% if (s.for === "vps") { %>
-        <a href="<%= s.path.replace(':id', server.containerId) %>" 
-           class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
-          <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
-          <%= s.text || a.name %>
-        </a>
+  <!-- Left side: Nav links -->
+  <div class="flex items-center gap-4">
+    <a href="/vps/<%= server.containerId %>/" 
+       class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      Overview
+    </a>
+    <a href="/vps/<%= server.containerId %>/network" 
+       class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
+      <i data-lucide="network" class="w-5 h-5"></i>
+      Network
+    </a>
+    <a href="/vps/<%= server.containerId %>/settings" 
+       class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
+      <i data-lucide="settings" class="w-5 h-5"></i>
+      Settings
+    </a>
+    <% addons.forEach(a => { %>
+      <% if (a.status === "enabled" && a.sidebar && a.sidebar.length > 0) { %>
+        <% a.sidebar.forEach(s => { %>
+          <% if (s.for === "vps") { %>
+            <a href="<%= s.path.replace(':id', server.containerId) %>" 
+               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-700 transition">
+              <i data-lucide="<%= s.icon || 'Puzzle' %>" class="w-5 h-5"></i>
+              <%= s.text || a.name %>
+            </a>
+          <% } %>
+        <% }) %>
       <% } %>
     <% }) %>
-  <% } %>
-<% }) %>
-
-</div>
+  </div>
