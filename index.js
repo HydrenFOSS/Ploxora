@@ -177,6 +177,8 @@ console.log(asciiart);
 
 app.listen(PORT, () => {
   logger.init(`Ploxora has been started on port ${PORT}!`);
-  logger.table(loadedRoutes);
+  if (process.env.NODE_ENV === "development") {
+    logger.table(loadedRoutes);
+  }
   addonManager.loadedAddons.forEach(a => logger.init(`Loaded Addon - ${a.name} v${a.version}`));
 });

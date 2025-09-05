@@ -25,6 +25,7 @@ DISCORD_CLIENT_SECRET=YOUR_DISCORD_CLIENT_SECRET
 DISCORD_CALLBACK_URL=http://localhost:6000/auth/discord/callback
 ADMIN_USERS=example@gmail.com,example2@gmail.com
 API_KEY=MAKE_SURE_TO_CHANGE_THIS
+SESSION_SECRET=supersecret
 
 # Do not edit below unless necessary
 NODE_ENV=development
