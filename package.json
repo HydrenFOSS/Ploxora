@@ -18,7 +18,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon index.js"
+    "test": "nodemon index.js",
+    "new:user": "node cli/create-user.js"
   },
   "dependencies": {
     "@keyv/sqlite": "^3.6.7",
@@ -37,6 +38,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
   }
 }

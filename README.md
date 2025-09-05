@@ -1,17 +1,18 @@
-# Ploxora 🚀
+# Ploxora
 
 Ploxora is a lightweight VPS panel that lets you manage nodes and deploy servers with a simple web interface.
 
 ---
 
-## 📦 Requirements
+## Requirements
 
-* [Node.js](https://nodejs.org/) (v18+ recommended)
+* [Node.js](https://nodejs.org/) (v18 or higher recommended)
 * [npm](https://www.npmjs.com/)
 * [PM2](https://pm2.keymetrics.io/) (for production)
+
 ---
 
-## ⚙️ Environment Setup
+## Environment Setup
 
 Create a `.env` file in the root of your project:
 
@@ -25,71 +26,86 @@ DISCORD_CALLBACK_URL=http://localhost:6000/auth/discord/callback
 ADMIN_USERS=example@gmail.com,example2@gmail.com
 API_KEY=MAKE_SURE_TO_CHANGE_THIS
 
-# not need to edit
+# Do not edit below unless necessary
 NODE_ENV=development
 DATABASE_FILE_NAME=sqlite://users.sqlite
 SESSIONS_FILE_NAME=sqlite://sessions.sqlite
 NODES_DB=sqlite://nodes.sqlite
 SETTINGS_DB=sqlite://settings.sqlite
 SERVERS_DB=sqlite://servers.sqlite
-
 ```
 
 ---
 
-## 🚀 Running Locally (Node.js)
+## Running Locally (Node.js)
 
 1. Install dependencies:
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. Start the app:
+2. Start the application:
 
-   ```bash
-   node index.js
-   ```
+```bash
+node index.js
+```
 
-3. Open in browser:
+3. Open your browser:
 
-   ```
-   http://localhost:6000
-   ```
+```
+http://localhost:6000
+```
 
 ---
 
-## 🔥 Running in Production with PM2
+## Creating a New User via CLI
+
+You can create a new user interactively using the CLI:
+
+```bash
+npm run new:user
+```
+
+The CLI will prompt you for:
+
+* **Username**
+* **Email**
+* **Password**
+
+---
+
+## Running in Production with PM2
 
 1. Install PM2 globally:
 
-   ```bash
-   npm install -g pm2
-   ```
+```bash
+npm install -g pm2
+```
 
 2. Start the app with PM2:
 
-   ```bash
-   pm2 start index.js --name ploxora
-   ```
+```bash
+pm2 start index.js --name ploxora
+```
 
-3. Check logs:
+3. View logs:
 
-   ```bash
-   pm2 logs ploxora
-   ```
+```bash
+pm2 logs ploxora
+```
 
-4. Auto-start PM2 on reboot:
+4. Enable auto-start on reboot:
 
-   ```bash
-   pm2 startup
-   pm2 save
-   ```
+```bash
+pm2 startup
+pm2 save
+```
 
 ---
 
-## 🛠️ Development Notes
+## Development Notes
 
 * Default authentication is via Discord OAuth2
-* Admins are defined by `ADMIN_USERS` in `.env`
-* SQLite is the default DB, but you can replace `sqlite://` with another supported Keyv backend
+* Admin users are defined in `.env` under `ADMIN_USERS`
+* SQLite is the default database, but you can replace `sqlite://` with any supported Keyv backend

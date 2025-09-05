@@ -35,6 +35,7 @@ const { minify } = require("html-minifier-terser");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
 const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
 require('./utilities/index-8018625156214.js');
+require('./utilities/index-91772T7152162.js');
 
 // --- Express setup ---
 app.use(express.urlencoded({ extended: true }));

@@ -238,3 +238,38 @@ function closePopup(el) {
     }, 200);
   });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.innerWidth <= 768) {
+      document.body.classList.add("overflow-hidden");
+    }
+  });
+</script>
+<style>
+html, body {
+  height: 100%;
+  overflow: auto; /* allow scrolling on body */
+}
+
+/* WebKit browsers */
+body::-webkit-scrollbar {
+  width: 12px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #0e0e0e;
+  border-radius: 6px;
+  border: 3px solid #050505;
+}
+
+/* Firefox */
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #0c0c0c #050505;
+}
+
+</style>
