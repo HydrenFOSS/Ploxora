@@ -19,6 +19,7 @@ Create a `.env` file in the root of your project:
 ```ini
 APP_PORT=6000
 APP_NAME=Ploxora
+DESCRIPTION=Ploxora is a lightweight VPS panel that lets you manage nodes and deploy servers with a simple web interface.
 
 DISCORD_CLIENT_ID=YOUR_DISCORD_CLIENT_ID
 DISCORD_CLIENT_SECRET=YOUR_DISCORD_CLIENT_SECRET
