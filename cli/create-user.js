@@ -4,20 +4,12 @@ const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 const Keyv = require("keyv");
 require("dotenv").config();
-
-// Database instance (reuse your USERS_DB)
 const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
-
-// Admin emails from environment
 const adminEmails = (process.env.ADMIN_USERS || "").split(",").map(e => e.trim().toLowerCase());
-
-// readline interface
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-
-// helper for asking questions
 function question(prompt) {
   return new Promise(resolve => rl.question(prompt, resolve));
 }
@@ -27,8 +19,6 @@ async function main() {
     const username = await question("Enter username: ");
     const email = await question("Enter email: ");
     const password = await question("Enter password: ");
-
-    // Check if email already exists
     for await (const [id, user] of users.iterator()) {
       if (user.email && user.email.toLowerCase() === email.toLowerCase()) {
         console.log("Error: Email already registered.");

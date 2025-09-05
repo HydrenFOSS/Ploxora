@@ -126,22 +126,20 @@ const baseOptions = {
     legend: { display: false },
     title: { display: false },
     tooltip: {
-      enabled: true, // ✅ show tooltips
-      backgroundColor: "rgb(23,23,23)", // ~bg-neutral-900
-      titleColor: "#e5e7eb",            // gray-200
-      bodyColor: "#d1d5db",             // gray-300
+      enabled: true,
+      backgroundColor: "rgb(23,23,23)",
+      titleColor: "#e5e7eb",        
+      bodyColor: "#d1d5db",      
       borderColor: "#2a2a2a",      
       borderWidth: 1,
-      displayColors: false, // removes color box (can set true if you want dataset color too)
+      displayColors: false, 
       callbacks: {
         title: () => null,
         label: (context) => {
-          // Show all parsed values from dataset
           let lines = [];
           if (context.dataset.label) {
             lines.push(`${context.dataset.label}: ${context.formattedValue}`);
           } else {
-            // fallback: show all parsed key/value pairs
             const parsed = context.parsed;
             for (const key in parsed) {
               lines.push(`${key}: ${parsed[key]}`);
@@ -187,7 +185,6 @@ const baseOptions = {
   },
 };
 
-// Tailwind gray helper
 function getTailwindColor(color, shade) {
   const colors = {
     gray: { 200: "#e5e7eb", 700: "#374151" },
@@ -469,7 +466,7 @@ async function performAction(action) {
     } else if (actiontorun === "start") {
       actiontorun = `Start`
     } else if (actiontorun === "restart") {
-      actiontorun = `Restarting`
+      actiontorun = `Restart`
     }
   } catch (err) {
     console.log(err)

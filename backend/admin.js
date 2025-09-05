@@ -53,8 +53,6 @@ async function getAppName() {
 }
 function uuid() {
   const bytes = crypto.randomBytes(16);
-
-  // UUID v4 layout
   bytes[6] = (bytes[6] & 0x0f) | 0x40; 
   bytes[8] = (bytes[8] & 0x3f) | 0x80; 
 
@@ -98,7 +96,7 @@ async function requireLogin(req, res, next) {
       return res.redirect("/?err=NO-USER");
     }
 
-    req.user = user; // attach user for later
+    req.user = user; 
     next();
   } catch (err) {
     logger.error("Auth error:", err);
@@ -152,14 +150,12 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
       //logger.error(`Health check failed for node ${nodeId}:`, err.message);
       status = "Offline";
     }
-
-    // Update DB if status changed
+    
     if (node.status !== status) {
       node.status = status;
       await nodes.set(nodeId, node);
     }
 
-    // Respond with JSON
     res.json({
       success: true,
       node: {
@@ -193,7 +189,6 @@ router.post("/admin/settings/upload-logo", requireLogin, requireAdmin, upload.si
   try {
     if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
 
-    // Save logo path to settings
     const logoPath = `/uploads/logo.png`;
     await settings.set("Logo", logoPath);
 
@@ -240,8 +235,6 @@ router.get("/admin/settings", requireLogin, requireAdmin, async (req, res) => {
 router.get("/admin/settings/update/:key/:value", requireLogin, requireAdmin, async (req, res) => {
   try {
     const { key, value } = req.params;
-
-    // Update the setting
     await settings.set(key, value);
 
     res.redirect("/admin/settings?msg=SETTINGS_UPDATED");
@@ -278,7 +271,6 @@ router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
         //logger.error(`Health check failed for node ${key}: ${err.message}`);
       }
 
-      // Update DB if status changed
       if (value.status !== status) {
         value.status = status;
         await nodes.set(key, value);
@@ -310,7 +302,6 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     for await (const [key, value] of nodes.iterator()) {
       let status = "Offline";
 
-      // Check Docker status
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 3000);
