@@ -414,13 +414,19 @@
         setInterval(fetchNodeUsage, 5000);
 
         function switchTab(tab) {
-          ["stats", "servers", "hardware", "config"].forEach(t => {
-            document.getElementById("tab-content-" + t).classList.add("hidden");
-            document.getElementById("tab-" + t).classList.remove("bg-neutral-800");
+          ["stats", "servers", "hardware", "config", "allocations"].forEach(t => {
+            const content = document.getElementById("tab-content-" + t);
+            const button = document.getElementById("tab-" + t);
+            if (content) content.classList.add("hidden");
+            if (button) button.classList.remove("bg-neutral-800");
           });
-          document.getElementById("tab-content-" + tab).classList.remove("hidden");
-          document.getElementById("tab-" + tab).classList.add("bg-neutral-800");
+
+          const activeContent = document.getElementById("tab-content-" + tab);
+          const activeButton = document.getElementById("tab-" + tab);
+          if (activeContent) activeContent.classList.remove("hidden");
+          if (activeButton) activeButton.classList.add("bg-neutral-800");
         }
+
 
         switchTab('stats');
         async function loadConfig() {
