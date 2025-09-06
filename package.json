@@ -22,7 +22,6 @@
     "new:user": "node cli/create-user.js"
   },
   "dependencies": {
-    "@keyv/redis": "^5.1.1",
     "@keyv/sqlite": "^3.6.7",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",

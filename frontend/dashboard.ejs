@@ -38,48 +38,76 @@
                 </p>
               </div>
             </div>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold text-white">VPS Instances</h2>
 
-            <div class="mb-6 text-center">
-              <h2 class="text-3xl font-bold text-white mb-2">VPS Instances</h2>
-              <p class="text-gray-400 text-sm">Manage your vps in seconds!</p>
+              <!-- Toggle buttons -->
+              <div class="flex gap-2">
+                <button id="squareViewBtn"
+                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-gray-300 text-sm font-medium">
+                  <i data-lucide="grid" class="w-4 h-4"></i>
+                  Squares
+                </button>
+                <button id="tableViewBtn"
+                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-gray-300 text-sm font-medium">
+                  <i data-lucide="table" class="w-4 h-4"></i>
+                  Table
+                </button>
+              </div>
             </div>
 
-            <div class="flex flex-wrap gap-6">
+            <!-- Server container -->
+            <!-- Squares container -->
+            <div id="squaresView" class="flex flex-wrap gap-6 border border-[#2a2a2a] shadow-2xl p-5 pt-4 rounded-xl">
               <% if (user.servers && user.servers.length> 0) { %>
                 <% user.servers.forEach(server=> { %>
                   <div
-                    class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition server-card"
+                    class="server-card h-[200px] bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition"
                     data-container-id="<%= server.containerId %>">
+
+                    <!-- content same as before -->
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
                       <div>
                         <h3 class="text-lg font-semibold text-white">
                           <%= server.name || "Empty" %>
                         </h3>
-                        <p class="text-gray-400 text-sm">Created At: <%= new Date(server.createdAt).toLocaleString() %>
+                        <p class="text-gray-400 text-sm">
+                          Created At: <%= new Date(server.createdAt).toLocaleString() %>
                         </p>
                       </div>
                       <div class="mt-2 md:mt-0">
                         <span
-                          class="server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">Loading</span>
+                          class="server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">
+                          Loading
+                        </span>
                       </div>
                     </div>
 
                     <!-- Usage Bars -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                       <div>
-                        <span class="text-gray-400 text-xs">CPU Usage</span>
+                        <span class="text-gray-400 text-xs flex items-center gap-1">
+                          <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                          CPU Usage
+                        </span>
                         <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
                           <div class="cpu-bar bg-green-500 h-3 w-0 transition-all duration-500"></div>
                         </div>
                       </div>
                       <div>
-                        <span class="text-gray-400 text-xs">Memory Usage</span>
+                        <span class="text-gray-400 text-xs flex items-center gap-1">
+                          <i data-lucide="memory-stick" class="w-3.5 h-3.5"></i>
+                          Memory Usage
+                        </span>
                         <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
                           <div class="memory-bar bg-blue-500 h-3 w-0 transition-all duration-500"></div>
                         </div>
                       </div>
                       <div>
-                        <span class="text-gray-400 text-xs">Disk Usage</span>
+                        <span class="text-gray-400 text-xs flex items-center gap-1">
+                          <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i>
+                          Disk Usage
+                        </span>
                         <div class="w-full bg-neutral-800 rounded h-3 mt-1 overflow-hidden">
                           <div class="disk-bar bg-yellow-500 h-3 w-0 transition-all duration-500"></div>
                         </div>
@@ -94,9 +122,99 @@
                   </div>
                   <% }) %>
                     <% } else { %>
-                      <p class="text-gray-500 italic text-center">No servers yet.</p>
+                      <div
+                        class="w-full flex flex-col items-center justify-center text-center p-12 border border-[#2a2a2a] rounded-xl bg-neutral-950 shadow-lg">
+                        <i data-lucide="server" class="w-20 h-20 text-gray-200 mb-4"></i>
+                        <p class="text-gray-400 text-lg font-medium">No servers yet</p>
+                      </div>
                       <% } %>
             </div>
+
+            <!-- Table container (hidden by default) -->
+            <div id="tableView" class="hidden overflow-x-auto border border-[#2a2a2a] shadow-2xl rounded-xl">
+              <table class="w-full text-sm text-left text-gray-400">
+                <thead class="bg-neutral-900 text-gray-300 uppercase text-xs">
+                  <tr>
+                    <th class="px-4 py-2">Name</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">CPU</th>
+                    <th class="px-4 py-2">Memory</th>
+                    <th class="px-4 py-2">Disk</th>
+                    <th class="px-4 py-2">Network</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (user.servers && user.servers.length> 0) { %>
+                    <% user.servers.forEach(server=> { %>
+                      <tr class="server-card border-t border-[#2a2a2a] hover:bg-neutral-800 transition cursor-pointer"
+                        data-container-id="<%= server.containerId %>">
+                        <td class="px-4 py-2 font-medium text-white">
+                          <%= server.name || "Empty" %>
+                        </td>
+                        <td class="px-4 py-2">
+                          <span
+                            class="server-status inline-flex items-center text-[11px] font-semibold text-white px-2 py-0.5 rounded bg-gray-500">
+                            <i data-lucide="server" class="inline w-3.5 h-3.5 mr-1"></i>Loading
+                          </span>
+                        </td>
+                        <td class="px-4 py-2">
+                          <div class="cpu-bar h-2 bg-green-500 w-0 rounded"></div>
+                        </td>
+                        <td class="px-4 py-2">
+                          <div class="memory-bar h-2 bg-blue-500 w-0 rounded"></div>
+                        </td>
+                        <td class="px-4 py-2">
+                          <div class="disk-bar h-2 bg-yellow-500 w-0 rounded"></div>
+                        </td>
+                        <td class="px-4 py-2 text-xs">
+                          In: <span class="inbound">0</span> KB <br>
+                          Out: <span class="outbound">0</span> KB
+                        </td>
+                      </tr>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="6" class="px-4 py-6 text-center text-gray-500 italic">No servers yet</td>
+                          </tr>
+                          <% } %>
+                </tbody>
+              </table>
+            </div>
+            <script>
+              document.addEventListener("DOMContentLoaded", () => {
+                const squaresView = document.getElementById("squaresView");
+                const tableView = document.getElementById("tableView");
+                const squareBtn = document.getElementById("squareViewBtn");
+                const tableBtn = document.getElementById("tableViewBtn");
+
+                // key for this user
+                const viewKey = "<%= user.username %>-viewtype";
+
+                // restore saved preference
+                const savedView = localStorage.getItem(viewKey) || "squares";
+                if (savedView === "table") {
+                  tableView.classList.remove("hidden");
+                  squaresView.classList.add("hidden");
+                } else {
+                  squaresView.classList.remove("hidden");
+                  tableView.classList.add("hidden");
+                }
+
+                // toggle & save on click
+                squareBtn.addEventListener("click", () => {
+                  squaresView.classList.remove("hidden");
+                  tableView.classList.add("hidden");
+                  localStorage.setItem(viewKey, "squares");
+                });
+
+                tableBtn.addEventListener("click", () => {
+                  tableView.classList.remove("hidden");
+                  squaresView.classList.add("hidden");
+                  localStorage.setItem(viewKey, "table");
+                });
+              });
+            </script>
+
           </main>
           <%- include('components/footer.ejs') %>
 
@@ -106,10 +224,11 @@
       <script>
         document.addEventListener("DOMContentLoaded", () => {
           const statusMap = {
-            running: "Online",
-            exited: "Exited",
-            "node missing": "Node Missing",
-            error: "Error"
+            running: { text: "Online", icon: "server" },
+            exited: { text: "Exited", icon: "server-off" },
+            "node missing": { text: "Node Missing", icon: "server-cog" },
+            error: { text: "Error", icon: "server-off" },
+            unknown: { text: "Unknown", icon: "server" }
           };
 
           const bgMap = {
@@ -120,13 +239,12 @@
             unknown: "bg-gray-500"
           };
 
-          // Track which containers are in "error" state
           const activePopupIds = new Set();
 
           const fetchServerStats = async () => {
             document.querySelectorAll(".server-card").forEach(async card => {
               const containerId = card.dataset.containerId;
-              const shortId = containerId.slice(0, 12); // first 12 chars
+              const shortId = containerId.slice(0, 12);
               const statusSpan = card.querySelector(".server-status");
               const cpuBar = card.querySelector(".cpu-bar");
               const memoryBar = card.querySelector(".memory-bar");
@@ -140,16 +258,18 @@
 
               try {
                 const res = await fetch(`/server/stats/${containerId}`);
-
                 if (!res.ok) throw new Error("Bad response");
 
                 const data = await res.json();
 
-                // ✅ Only update stats if we got valid JSON
                 const rawStatus = data.status || "unknown";
-                statusSpan.textContent = statusMap[rawStatus] || "Unknown";
-                statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap[rawStatus] || bgMap.unknown}`;
+                const { text, icon } = statusMap[rawStatus] || statusMap.unknown;
 
+                // inject Lucide icon + text
+                statusSpan.innerHTML = `<i data-lucide="${icon}" class="inline w-3.5 h-3.5 mr-1"></i>${text}`;
+                statusSpan.className = `server-status inline-flex items-center text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap[rawStatus] || bgMap.unknown}`;
+
+                // progress bars
                 cpuBar.style.width = `${data.cpuPercent || 0}%`;
                 memoryBar.style.width = `${data.memoryMB ? Math.min((data.memoryMB / 1024) * 100, 100) : 0}%`;
                 diskBar.style.width = `${data.diskUsageMB ? Math.min((data.diskUsageMB / 1024) * 100, 100) : 0}%`;
@@ -157,14 +277,15 @@
                 if (inboundEl) inboundEl.textContent = data.network?.inboundKB || 0;
                 if (outboundEl) outboundEl.textContent = data.network?.outboundKB || 0;
 
-                // ✅ Clear error state if it recovers
                 activePopupIds.delete(containerId);
 
+                // refresh Lucide icons after updating HTML
+                lucide.createIcons();
               } catch (err) {
-               console.log(err)
+                console.log(err);
                 if (!activePopupIds.has(containerId)) {
-                  statusSpan.textContent = "Error";
-                  statusSpan.className = `server-status inline-block text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;
+                  statusSpan.innerHTML = `<i data-lucide="server-off" class="inline w-3.5 h-3.5 mr-1"></i>Error`;
+                  statusSpan.className = `server-status inline-flex items-center text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;
 
                   showPopup(
                     "error",
@@ -173,11 +294,11 @@
                   );
 
                   activePopupIds.add(containerId);
+                  lucide.createIcons();
                 }
               }
             });
           };
-
 
           fetchServerStats();
           setInterval(fetchServerStats, 5000);
