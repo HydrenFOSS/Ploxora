@@ -415,7 +415,6 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
 
     if (!Array.isArray(user.servers)) user.servers = [];
 
-    // Deploy VPS using that allocation
     const deployRes = await fetch(
       `http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`,
       {

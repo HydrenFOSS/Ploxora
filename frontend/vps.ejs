@@ -47,11 +47,11 @@
           <% if (server.ssh) { %>
             <% if (!server.ssh.includes('root')) { %>
               <a href="http://<%= server.ssh %>/vnc.html" target="_blank"
-                class="px-3 py-1 bg-neutral-700 rounded text-blue-400 font-mono whitespace-nowrap hover:underline">
+                class="px-3 py-1 bg-neutral-900 rounded text-blue-400 font-mono whitespace-nowrap hover:underline">
                 <%= server.ssh %>/vnc.html
               </a>
               <% } else { %>
-                <span class="px-3 py-1 bg-neutral-700 rounded text-green-400 font-mono whitespace-nowrap">
+                <span class="px-3 py-1 bg-neutral-900 rounded text-green-400 font-mono whitespace-nowrap">
                  <%= server.ssh %>
                 </span>
                 <% } %>
@@ -63,7 +63,7 @@
         <!-- Uptime -->
         <div class="flex items-center space-x-2 text-sm md:text-base">
           <span class="font-semibold">Uptime:</span>
-          <span id="uptime-display" class="px-3 py-1 bg-neutral-700 rounded text-blue-400 font-mono whitespace-nowrap">
+          <span id="uptime-display" class="px-3 py-1 bg-neutral-900 rounded text-blue-400 font-mono whitespace-nowrap">
             Loading...
           </span>
         </div>
@@ -71,7 +71,7 @@
         <!-- Status -->
         <div class="flex items-center space-x-2 text-sm md:text-base">
           <span class="font-semibold">Status:</span>
-          <span id="vps-status" class="px-4 py-2 rounded font-semibold text-lg bg-gray-500 text-white">
+          <span id="vps-status" class="px-4 py-2 rounded-xl font-semibold text-sm bg-gray-500 text-white">
             Loading
           </span>
         </div>
@@ -372,25 +372,29 @@ async function updateVPS() {
     // Status
     const statusEl = document.getElementById("vps-status");
     let bgClass;
+    let statusfromres;
     switch (data.status) {
       case "running":
         bgClass = "bg-green-500";
+        statusfromres = "Running";
         break;
       case "exited":
         bgClass = "bg-red-500";
+        statusfromres = "Stopped";
         break;
       case "node missing":
         bgClass = "bg-yellow-500";
+        statusfromres = "Node Missing";
         break;
       case "error":
         bgClass = "bg-orange-500";
+        statusfromres = "Error";
         break;
       default:
         bgClass = "bg-gray-500";
     }
-    statusEl.textContent = data.status || "unknown";
-    statusEl.className = `px-4 py-2 rounded font-semibold text-lg text-white ${bgClass}`;
-
+    statusEl.textContent = statusfromres || "unknown";
+    statusEl.className = `px-4 py-2 rounded-xl font-semibold text-sm text-white ${bgClass}`;
     // Uptime
     document.getElementById("uptime-display").textContent =
       data.uptime || "N/A";

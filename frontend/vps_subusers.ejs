@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('components/head') %>
+<body class="bg-neutral-950 text-gray-100 font-[Figtree] min-h-screen flex">
+
+  <!-- Sidebar -->
+  <%- include('components/sidebar.ejs') %>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Navbar -->
+    <%- include('components/nav.ejs') %>
+
+    <!-- Page Content -->
+    <main class="p-6 flex flex-col space-y-6">
+      <%- include('components/vpsnav.ejs') %>
+    </div>
+      <!-- Subusers Management -->
+      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+        <h1 class="text-2xl font-bold text-gray-200 mb-4">Subusers</h1>
+
+        <% if (subusers.length > 0) { %>
+          <div class="overflow-x-auto">
+            <table class="w-full border border-[#2a2a2a] rounded-xl overflow-hidden text-sm">
+              <thead class="bg-neutral-900 text-gray-400 uppercase text-xs">
+                <tr>
+                  <th class="px-4 py-2 text-left">Email</th>
+                  <th class="px-4 py-2 text-left">Added At</th>
+                  <th class="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% subusers.forEach(subuser => { %>
+                  <tr class="hover:bg-neutral-900 transition">
+                    <td class="px-4 py-2 text-emerald-400"><%= subuser.email %></td>
+                    <td class="px-4 py-2 text-blue-400"><%= new Date(subuser.addedAt).toLocaleString() %></td>
+                <td class="px-4 py-2 text-center">
+                    <button type="button" class="bg-red-500 rounded-md w-16 h-6 text-gray-100 hover:text-gray-300"
+                        onclick="deleteSubuser('<%= server.containerId %>', '<%= subuser.email %>')">
+                        Remove
+                    </button>
+                </td>
+
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <p class="text-gray-500 italic">No subusers added yet.</p>
+        <% } %>
+
+        <!-- Add Subuser Form -->
+        <form method="POST" action="/vps/<%= server.containerId %>/subusers/add" class="mt-6 flex space-x-3">
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Subuser email" 
+            required 
+            class="flex-1 bg-neutral-900 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+          >
+          <button 
+            type="submit" 
+            class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium"
+          >
+            Add
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <%- include('components/footer.ejs') %>
+  </div>
+<script>
+async function deleteSubuser(containerId, email) {
+  if (!confirm("Remove this subuser?")) return;
+
+  try {
+    const res = await fetch(`/vps/${containerId}/subusers/${encodeURIComponent(email)}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (res.ok) {
+      window.location.href = '/vps/<%= server.containerId %>/subusers?msg=DELETED_SUCCESSFULLY'
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Failed to delete subuser.");
+    }
+  } catch (err) {
+    console.error("Delete subuser error:", err);
+    alert("Error deleting subuser.");
+  }
+}
+</script>
+
+<script>
+lucide.createIcons();
+</script>
+</body>
+</html>

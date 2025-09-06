@@ -159,7 +159,7 @@ router.get('/settings', requireLogin, async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   const userId = await sessions.get(token);
   const user = await users.get(userId);
-  res.render("settings", { user, name: await getAppName(), addons: addonManager.loadedAddons})
+  res.render("settings", { user, name: await getAppName(), addons: addonManager.loadedAddons })
 });
 
 
@@ -274,19 +274,46 @@ async function getServerByContainerId(containerId) {
 }
 
 /*
+* Middleware: requireServerAccess
+* Ensures the logged-in user is either the owner or a subuser of the server.
+* Attaches the server object to req.server if access is granted.
+*/
+async function requireServerAccess(req, res, next) {
+  try {
+    const { containerId } = req.params;
+    const user = req.user;
+
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).send("Server not found");
+
+    const { server } = result;
+
+    const isOwner = user.servers?.some(s => s.containerId === containerId);
+    const isSubuser = server.subusers?.some(su => su.email === user.email);
+
+    if (!isOwner && !isSubuser) {
+      return res.status(403).send("You do not have access to this VPS.");
+    }
+
+    req.server = server;
+    next();
+  } catch (err) {
+    logger.error("[requireServerAccess] error:", err);
+    res.status(500).send("Internal error checking server access");
+  }
+}
+
+/*
 * Route: GET /vps/:containerId
 * Description: Render VPS page for a specific container.
 * Validations: Ensures user owns requested VPS.
 * Version: v1.0.0
 */
-router.get("/vps/:containerId", requireLogin, async (req, res) => {
+router.get("/vps/:containerId", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId } = req.params;
     const user = req.user;
-    const server = user.servers?.find(s => s.containerId === containerId);
-    if (!server) {
-      return res.status(403).send("You do not have access to this VPS.");
-    }
+    const server = req.server;
     let serverip;
     const node = await nodes.get(server.node);
     if (!node) return res.status(500).json({ error: "Node not found" });
@@ -307,10 +334,9 @@ router.get("/vps/:containerId", requireLogin, async (req, res) => {
 * Validations: Only allows "start", "stop", "restart".
 * Version: v1.0.0
 */
-router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) => {
+router.post("/vps/action/:containerId/:action", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId, action } = req.params;
-    logger.info('I just need to execute a action called '+ action)
     const allowedActions = ["start", "stop", "restart"];
 
     if (!allowedActions.includes(action)) {
@@ -320,10 +346,7 @@ router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) =
     const result = await getServerByContainerId(containerId);
     if (!result) return res.status(404).json({ error: "Server not found" });
 
-    const { id: serverId, server } = result;
-    if (!req.user.servers?.some(s => s.id === serverId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+    const { server } = result;
 
     const node = await nodes.get(server.node);
     if (!node) return res.status(500).json({ error: "Node not found" });
@@ -351,7 +374,7 @@ router.post("/vps/action/:containerId/:action", requireLogin, async (req, res) =
 * Returns: JSON with updated SSH info.
 * Version: v1.0.0
 */
-router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
+router.post("/vps/ressh/:containerId", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId } = req.params;
 
@@ -361,10 +384,6 @@ router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
     if (!result) return res.status(404).json({ error: "Server not found" });
 
     const { id: serverId, server } = result;
-
-    if (!req.user.servers?.some(s => s.id === serverId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
 
     const node = await nodes.get(server.node);
     if (!node) return res.status(500).json({ error: "Node not found" });
@@ -379,7 +398,6 @@ router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
       return res.status(statusResp.status).json({ error: "Failed to fetch container status", details: text });
     }
 
-    const statusData = await statusResp.json();
 
     // Fetch SSH info safely
     let sshData = { ssh: "N/A" };
@@ -430,16 +448,13 @@ router.post("/vps/ressh/:containerId", requireLogin, async (req, res) => {
 * Validations: Ensures user owns requested VPS.
 * Version: v1.0.0
 */
-router.get("/vps/:containerId/network", requireLogin, async (req, res) => {
+router.get("/vps/:containerId/network", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId } = req.params;
     const user = req.user;
 
     // Check if user owns this server
-    const server = user.servers?.find(s => s.containerId === containerId);
-    if (!server) {
-      return res.status(403).send("You do not have access to this VPS.");
-    }
+    const server = req.server;
 
     // Render with allocations
     res.render("vps_network", {
@@ -462,7 +477,7 @@ router.get("/vps/:containerId/network", requireLogin, async (req, res) => {
 * Validations: Must own server, name must not be empty.
 * Version: v1.0.0
 */
-router.post("/vps/:containerId/edit-name", requireLogin, async (req, res) => {
+router.post("/vps/:containerId/edit-name", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId } = req.params;
     const { name } = req.body;
@@ -476,11 +491,6 @@ router.post("/vps/:containerId/edit-name", requireLogin, async (req, res) => {
 
     const { id: serverId, server } = result;
 
-    // Check ownership
-    if (!req.user.servers?.some(s => s.id === serverId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     // Update server in DB
     server.name = name.trim();
     await serversDB.set(serverId, server);
@@ -490,10 +500,10 @@ router.post("/vps/:containerId/edit-name", requireLogin, async (req, res) => {
     if (userServer) userServer.name = server.name;
     await users.set(req.user.id, req.user);
 
-    res.json({ 
-      containerId, 
-      name: server.name, 
-      message: "Server name updated successfully" 
+    res.json({
+      containerId,
+      name: server.name,
+      message: "Server name updated successfully"
     });
 
   } catch (err) {
@@ -507,16 +517,13 @@ router.post("/vps/:containerId/edit-name", requireLogin, async (req, res) => {
 * Validations: Ensures user owns the VPS.
 * Version: v1.0.0
 */
-router.get("/vps/:containerId/settings", requireLogin, async (req, res) => {
+router.get("/vps/:containerId/settings", requireLogin, requireServerAccess, async (req, res) => {
   try {
     const { containerId } = req.params;
     const user = req.user;
 
     // Check if user owns this server
-    const server = user.servers?.find(s => s.containerId === containerId);
-    if (!server) {
-      return res.status(403).send("You do not have access to this VPS.");
-    }
+    const server = req.server;
 
     res.render("vps_settings", {
       user,
@@ -530,5 +537,151 @@ router.get("/vps/:containerId/settings", requireLogin, async (req, res) => {
   }
 });
 
+async function findUserByEmail(email) {
+  for await (const [id, user] of users.iterator()) {
+    if (user.email === email) {
+      return { id, user };
+    }
+  }
+  return null;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Subuser Management (Add, Delete)
+|--------------------------------------------------------------------------
+*/
+
+/*
+* Route: POST /vps/:containerId/subusers/add
+* Description: Add a subuser to a VPS server.
+* Body: { email }
+*/
+router.post("/vps/:containerId/subusers/add", requireLogin, requireServerAccess, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    // find server by containerId
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+
+    // make sure server.subusers exists
+    if (!server.subusers) server.subusers = [];
+
+    // check if subuser already exists
+    if (server.subusers.find(su => su.email === email)) {
+      return res.status(400).json({ error: "Subuser already exists" });
+    }
+
+    // add subuser to the server record
+    server.subusers.push({
+      email,
+      addedAt: Date.now()
+    });
+
+    await serversDB.set(serverId, server);
+
+    const subuserResult = await findUserByEmail(email);
+    if (subuserResult) {
+      const { id: subuserId, user: subuser } = subuserResult;
+
+      // force servers into an array
+      if (!Array.isArray(subuser.servers)) {
+        subuser.servers = [];
+      }
+
+      if (!subuser.servers.find(s => s.containerId === server.containerId)) {
+        subuser.servers.push({
+          id: serverId,
+          name: server.name,
+          ssh: server.ssh,
+          containerId: server.containerId,
+          createdAt: server.createdAt,
+          status: server.status,
+          user: server.user,
+          node: server.node,
+          allocation: server.allocation,
+          subusers: server.subusers
+        });
+      }
+
+      await users.set(subuserId, subuser);
+    }
+
+
+    return res.redirect(`/vps/${containerId}/subusers?success=ADDED`)
+  } catch (err) {
+    logger.error("[Add Subuser] error:", err.stack || err.message || err);
+    res.status(500).json({ error: "Failed to add subuser", details: err.message });
+  }
+});
+
+
+/*
+* Route: DELETE /vps/:containerId/subusers/:email
+* Description: Remove a subuser from server + remove server from their `servers` list.
+*/
+router.delete("/vps/:containerId/subusers/:email", requireLogin, requireServerAccess, async (req, res) => {
+  try {
+    const { containerId, email } = req.params;
+    const result = await getServerByContainerId(containerId);
+    if (!result) return res.status(404).json({ error: "Server not found" });
+
+    const { id: serverId, server } = result;
+    if (!server.subusers) return res.status(404).json({ error: "No subusers found" });
+
+    const before = server.subusers.length;
+    server.subusers = server.subusers.filter(su => su.email !== email);
+
+    if (before === server.subusers.length) {
+      return res.status(404).json({ error: "Subuser not found" });
+    }
+
+    await serversDB.set(serverId, server);
+
+    const subuserResult = await findUserByEmail(email);
+    if (subuserResult) {
+      const { id: subuserId, user: subuser } = subuserResult;
+
+      if (!Array.isArray(subuser.servers)) subuser.servers = [];
+
+      subuser.servers = subuser.servers.filter(s => s.containerId !== containerId);
+      await users.set(subuserId, subuser);
+    }
+
+    res.json({ message: "Subuser removed successfully", subusers: server.subusers });
+  } catch (err) {
+    logger.error("[Delete Subuser] error:", err);
+    res.status(500).json({ error: "Failed to delete subuser", details: err.message });
+  }
+});
+
+/*
+* Route: GET /vps/:containerId/subusers
+* Description: Render VPS Subusers management page.
+* Validations: Owner or subuser access required.
+*/
+router.get("/vps/:containerId/subusers", requireLogin, requireServerAccess, async (req, res) => {
+  try {
+    const user = req.user;
+    const server = req.server;
+    res.render("vps_subusers", {
+      user,
+      server,
+      subusers: server.subusers || [],
+      name: await getAppName(),
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("VPS Subusers page error:", err);
+    res.status(500).send("Failed to load VPS Subusers page.");
+  }
+});
+
 const ploxora_route = "User Pages | Author: ma4z | V1"
-module.exports = { router,ploxora_route };
+module.exports = { router, ploxora_route };
