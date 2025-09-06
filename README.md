@@ -30,6 +30,7 @@ SESSION_SECRET=supersecret
 
 # Do not edit below unless necessary
 NODE_ENV=development
+DATABASE_FILE=sqlite://ploxora.sqlite
 ```
 
 ---

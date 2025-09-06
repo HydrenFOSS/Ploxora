@@ -1,5 +1,5 @@
 const Keyv = require('keyv');
-const DB_URI = 'sqlite://ploxora.sqlite';
+const DB_URI = process.env.DATABASE_FILE || 'sqlite://ploxora.sqlite';
 const nodes = new Keyv(DB_URI, { namespace: 'nodes' });
 const servers = new Keyv(DB_URI, { namespace: 'servers' });
 const settings = new Keyv(DB_URI, { namespace: 'settings' });
