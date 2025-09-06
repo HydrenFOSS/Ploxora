@@ -1,7 +1,7 @@
 const axios = require("axios");
 const Logger = require("./logger");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
-const settings = new (require("keyv"))(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
+const { settings } = require("../utilities/db");
 
 /**
  * Logs a message to Discord via webhook if logging is enabled

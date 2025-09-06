@@ -5,17 +5,12 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const Keyv = require("keyv");
 require("dotenv").config();
 
 const Logger = require("../utilities/logger");
 const addonManager = require("../addons/addon_manager");
 const logger = new Logger({ prefix: "Ploxora-APIv2", level: "debug" });
-
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
-const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
-const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
+const { nodes, servers, settings, users, sessions } = require('../utilities/db');
 
 const API_KEY = process.env.API_KEY;
 

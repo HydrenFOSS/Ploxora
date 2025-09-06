@@ -2,13 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const Logger = require("../utilities/logger");
+const { settings,users,sessions } = require("../utilities/db");
 const logger = new Logger({ prefix: "Ploxora-Addon-Router", level: "debug" });
-const Keyv = require("keyv");
 const router = express.Router();
-
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
 
 const loadedAddons = [];
 const allAddons = [];

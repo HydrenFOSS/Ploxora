@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Keyv = require("keyv");
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
+const { users, sessions } = require("../../utilities/db")
 async function requireLogin(req, res, next) {
   try {
     const token = req.cookies["SESSION-COOKIE"];

@@ -30,11 +30,6 @@ SESSION_SECRET=supersecret
 
 # Do not edit below unless necessary
 NODE_ENV=development
-DATABASE_FILE_NAME=sqlite://users.sqlite
-SESSIONS_FILE_NAME=sqlite://sessions.sqlite
-NODES_DB=sqlite://nodes.sqlite
-SETTINGS_DB=sqlite://settings.sqlite
-SERVERS_DB=sqlite://servers.sqlite
 ```
 
 ---
@@ -110,4 +105,3 @@ pm2 save
 
 * Default authentication is via Discord OAuth2
 * Admin users are defined in `.env` under `ADMIN_USERS`
-* SQLite is the default database, but you can replace `sqlite://` with any supported Keyv backend

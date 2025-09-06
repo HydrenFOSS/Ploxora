@@ -2,9 +2,8 @@
 const readline = require("readline");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
-const Keyv = require("keyv");
 require("dotenv").config();
-const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
+const { users } = require('../utilities/db');
 const adminEmails = (process.env.ADMIN_USERS || "").split(",").map(e => e.trim().toLowerCase());
 const rl = readline.createInterface({
   input: process.stdin,

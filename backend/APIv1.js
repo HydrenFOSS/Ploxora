@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const Keyv = require("keyv");
 const crypto = require("crypto");
 const Logger = require("../utilities/logger");
 const logger = new Logger({ prefix: "PloxoraAPI", level: "debug" });
 const bcrypt = require("bcrypt");
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
-const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
-const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
+const { nodes, servers, settings, users, sessions } = require('../utilities/db');
 
 const API_KEY = process.env.API_KEY;
 

@@ -22,13 +22,8 @@ const logger = new Logger({ prefix: "Ploxora-Admin-Router", level: "debug" });
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const Keyv = require("keyv");
 const package = require("../package.json")
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
-const servers = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
+const { nodes, servers, settings, users, sessions } = require('../utilities/db');
 const crypto = require("crypto");
 const addonManager = require("../addons/addon_manager");
 

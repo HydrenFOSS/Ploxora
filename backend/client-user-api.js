@@ -9,15 +9,11 @@
 |--------------------------------------------------------------------------
 */
 const router = require("express").Router();
-const Keyv = require("keyv");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
 const { CheckClientAPI } = require("../utilities/cv");
 
-// DBs
-const users = new Keyv(process.env.USERS_DB || "sqlite://users.sqlite");
-const serversDB = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
+const { servers: serversDB, users, nodes } = require('../utilities/db');
 
 // Logger
 const logger = new Logger({ prefix: "Ploxora-ClientAPI-VPS", level: "debug" });

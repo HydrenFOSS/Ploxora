@@ -10,13 +10,13 @@
       "icon": "Activity",
       "text": "Example",
       "for": "user",
-      "path": "/afkpage"
+      "path": "/example"
     },
     {
       "icon": "Activity",
       "text": "Example1",
       "for": "admin",
-      "path": "/afkpage/settings"
+      "path": "/example"
     },
     {
       "icon": "Activity",

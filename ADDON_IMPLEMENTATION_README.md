@@ -63,10 +63,8 @@ Handles routing for your addon pages. You can integrate session checks or permis
 ```js
 const express = require("express");
 const router = express.Router();
-const Keyv = require("keyv");
 
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
+const { sessions, users } = require("../../utilities/db");
 
 // Middleware to require login
 async function requireLogin(req, res, next) {

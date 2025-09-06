@@ -3,7 +3,6 @@
 <%- include('../components/head') %>
 
 <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
-
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
 
@@ -88,7 +87,8 @@
                       <div class="relative group flex items-center">
                         <% if (node.status==="Online" ) { %>
                           <!-- Green Heart for Online -->
-                          <i data-lucide="heart-pulse" stroke="currentColor" class="w-5 h-5 text-green-500"></i>
+                          <i data-lucide="heart-pulse" 
+                              class="w-6 h-6 text-green-500 fill-green-500 stroke-neutral-950"></i>
                         <% } else { %>
                           <!-- Red Heart for Offline -->
                           <i data-lucide="heart" class="w-5 h-5 text-red-500 animate-pulse"></i>

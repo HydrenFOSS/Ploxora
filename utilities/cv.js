@@ -1,5 +1,4 @@
-const Keyv = require("keyv");
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
+const { users } = require("../utilities/db");
 
 /*
 * Middleware: CheckClientAPI
@@ -11,7 +10,6 @@ async function CheckClientAPI(req, res, next) {
     const apiKey = req.headers["x-client-key"] || req.query["x-client-key"];
     if (!apiKey) return res.status(401).json({ error: "Missing API key" });
 
-    // search across all users
     let owner = null;
     for await (const [id, user] of users.iterator()) {
       if (user.clientAPIs?.some(api => api.key === apiKey)) {
@@ -22,7 +20,7 @@ async function CheckClientAPI(req, res, next) {
 
     if (!owner) return res.status(403).json({ error: "Invalid API key" });
 
-    req.user = owner; // attach user
+    req.user = owner;
    // req.apiKey = apiKey; ill use this shit later on
     next();
   } catch (err) {

@@ -1,0 +1,9 @@
+const Keyv = require('keyv');
+const DB_URI = 'sqlite://ploxora.sqlite';
+const nodes = new Keyv(DB_URI, { namespace: 'nodes' });
+const servers = new Keyv(DB_URI, { namespace: 'servers' });
+const settings = new Keyv(DB_URI, { namespace: 'settings' });
+const users = new Keyv(DB_URI, { namespace: 'users' });
+const SESSION_TTL = 1000 * 60 * 60 * 24; // 24h
+const sessions = new Keyv(DB_URI, { namespace: 'sessions', ttl: SESSION_TTL });
+module.exports = { nodes, servers, settings, users, sessions };

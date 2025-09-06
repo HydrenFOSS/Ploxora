@@ -2,8 +2,8 @@
  * --------------------------------------------------------------------------
  * Ploxora VPS Management Dashboard
  * --------------------------------------------------------------------------
- * Version: 1.0.0-develop
- * Codename: Espresso
+ * Version: 1.0.0-alpha
+ * Codename: Sabrina Ridge
  *
  * WARNING: All source code in this project is proprietary. No part of this
  * code may be copied, redistributed, or used without explicit permission 
@@ -28,12 +28,11 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const app = express();
-const Keyv = require("keyv");
 const cookieParser = require("cookie-parser");
 const Logger = require("./utilities/logger");
 const { minify } = require("html-minifier-terser");
 const logger = new Logger({ prefix: "Ploxora", level: "debug" });
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
+const { settings } = require("./utilities/db");
 require('./utilities/index-8018625156214.js');
 require('./utilities/index-91772T7152162.js');
 

@@ -14,16 +14,11 @@
 const router = require('express').Router();
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-const Keyv = require("keyv");
 const crypto = require("crypto");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
 const logger = new Logger({ prefix: "Ploxora-Users-Router", level: "debug" });
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const sessions = new Keyv(process.env.SESSIONS_DB || 'sqlite://sessions.sqlite');
-const nodes = new Keyv(process.env.NODES_DB || 'sqlite://nodes.sqlite');
-const serversDB = new Keyv(process.env.SERVERS_DB || "sqlite://servers.sqlite");
+const { servers: serversDB, users, nodes, sessions, settings } = require('../utilities/db');
 
 async function requireLogin(req, res, next) {
   try {
@@ -33,7 +28,7 @@ async function requireLogin(req, res, next) {
     const userId = await sessions.get(token);
     if (!userId) {
       res.clearCookie("SESSION-COOKIE");
-      return res.redirect("/?err=LOGIN-IN-FIRST");
+      return res.redirect("/?err=USER_NOT_FOUND");
     }
 
     const user = await users.get(userId);

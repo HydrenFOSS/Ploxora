@@ -17,19 +17,14 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
-const Keyv = require("keyv");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
 const logger = new Logger({ prefix: "Ploxora-Auth-Router", level: "debug" });
 const router = express.Router();
 const bcrypt = require("bcrypt");
 
-// Keyv instances for users and sessions
 const SESSION_TTL = 1000 * 60 * 60 * 24; // 24h TTL
-const nodes = new Keyv(process.env.NODES_DB || "sqlite://nodes.sqlite");
-const users = new Keyv(process.env.USERS_DB || 'sqlite://users.sqlite');
-const settings = new Keyv(process.env.SETTINGS_DB || "sqlite://settings.sqlite");
-const sessions = new Keyv({ uri: process.env.SESSIONS_DB || 'sqlite://sessions.sqlite', ttl: SESSION_TTL });
+const { nodes, servers, settings, users, sessions } = require('../utilities/db');
 
 users.on('error', err => logger.error('Users DB Error', err));
 sessions.on('error', err => logger.error('Sessions DB Error', err));
