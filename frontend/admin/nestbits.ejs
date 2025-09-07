@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../components/head') %>
+
+  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+    <!-- Sidebar -->
+    <%- include('../components/admin_sidebar.ejs') %>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Navbar -->
+        <%- include('../components/nav.ejs') %>
+
+          <!-- Main content -->
+          <main class="flex-1 p-6 space-y-8">
+
+            <!-- NestBits Table -->
+            <section class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">NestBits Dashboard</h2>
+
+               <div class="flex gap-2 relative">
+  <button onclick="openCNModal()"
+    class="bg-blue-600 hover:bg-blue-500 transition px-4 py-2 rounded-xl text-white font-medium shadow-lg">
+    + Create NestBit
+  </button>
+  <button onclick="uploadInput.click()"
+    class="bg-green-600 hover:bg-green-500 transition px-4 py-2 rounded-xl text-white font-medium shadow-lg">
+    Upload NestBit
+  </button>
+  <input type="file" id="uploadNestBitInput" accept=".json" class="hidden" />
+
+  <!-- Hidden Drag & Drop Area -->
+  <div id="uploadNestBitDropZone"
+       class="hidden absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 border-2 border-dashed border-gray-600 rounded-xl p-6 text-center text-gray-400 text-lg font-medium transition">
+    Drop NestBit JSON here
+  </div>
+</div>
+</div>
+              <!-- Flash messages -->
+              <% if (req.query.msg) { %>
+                <div class="mb-4 p-4 rounded-lg flex items-start space-x-3 
+            <%= req.query.msg.includes('CREATED') ? 'bg-green-600 text-white' : 'bg-blue-600 text-white' %>">
+                  <div class="flex-shrink-0 flex flex-col justify-center">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                  </div>
+                  <div class="flex flex-col">
+                    <p class="font-semibold leading-tight">
+                      <%= req.query.msg.replaceAll('_', ' ' ) %>
+                    </p>
+                  </div>
+                </div>
+                <% } %>
+
+                  <div class="overflow-x-auto rounded-2xl border border-[#2a2a2a]">
+                    <table class="w-full border-collapse">
+                      <thead>
+                        <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
+                          <th class="px-6 py-3">Name</th>
+                          <th class="px-6 py-3">Docker Image</th>
+                          <th class="px-6 py-3">Version</th>
+                          <th class="px-6 py-3">Author</th>
+                          <th class="px-6 py-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-neutral-700">
+                        <% if (nestbits && nestbits.length> 0) { %>
+                          <% nestbits.forEach((nb)=> { %>
+                            <tr class="hover:bg-neutral-850 transition">
+                              <td class="px-6 py-3 font-medium text-gray-200">
+                                <%= nb.name || "Unnamed" %>
+                              </td>
+                              <td class="px-6 py-3 text-gray-300">
+                                <%= nb.dockerimage || "N/A" %>
+                              </td>
+                              <td class="px-6 py-3 text-gray-300">
+                                <%= nb.version || "N/A" %>
+                              </td>
+                              <td class="px-6 py-3 text-gray-300">
+                                <%= nb.author || "Unknown" %>
+                              </td>
+                              <td class="px-6 py-3 flex gap-2">
+                                <button onclick="exportNestBit('<%= nb.id %>')"
+                                  class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
+                                  Export
+                                </button>
+                                <form action="/admin/nestbits/delete" method="POST"
+                                  onsubmit="return confirm('Delete this NestBit?');">
+                                  <input type="hidden" name="id" value="<%= nb.id %>" />
+                                  <button type="submit"
+                                    class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
+                                    Delete
+                                  </button>
+                                </form>
+                              </td>
+                            </tr>
+                            <% }) %>
+                              <% } else { %>
+                                <tr>
+                                  <td colspan="5" class="text-center px-6 py-6 text-gray-500 italic">
+                                    No NestBits yet.
+                                  </td>
+                                </tr>
+                                <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+            </section>
+
+            <!-- Create NestBit Modal -->
+            <div id="createNodeModal"
+              class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
+              <div id="createNodeModalContent"
+                class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a] transform scale-95 opacity-0 transition-all duration-200">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  <i data-lucide="plus-circle" class="w-6 h-6 text-blue-500"></i>
+                  Create New NestBit
+                </h2>
+
+                <form action="/admin/nestbits/new" method="POST" class="space-y-5">
+                  <div>
+                    <label class="block text-gray-300 mb-1">Name</label>
+                    <input type="text" name="name" required
+                      class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-300 mb-1">Docker Image</label>
+                    <input type="text" name="dockerimage" required
+                      class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-300 mb-1">Version</label>
+                    <input type="text" name="version" required
+                      class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-300 mb-1">Author</label>
+                    <input type="text" name="author"
+                      class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-300 mb-1">Description</label>
+                    <textarea name="description" rows="3"
+                      class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"></textarea>
+                  </div>
+
+                  <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeCNModal()"
+                      class="px-5 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 text-white transition shadow-sm">
+                      Cancel
+                    </button>
+                    <button type="submit"
+                      class="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition shadow-lg">
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+          </main>
+      </div>
+
+      <script>
+        function openCNModal() {
+          const modal = document.getElementById('createNodeModal');
+          const content = document.getElementById('createNodeModalContent');
+          modal.classList.remove('hidden');
+          setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+          }, 10);
+        }
+
+        function closeCNModal() {
+          const modal = document.getElementById('createNodeModal');
+          const content = document.getElementById('createNodeModalContent');
+          content.classList.add('scale-95', 'opacity-0');
+          setTimeout(() => {
+            modal.classList.add('hidden');
+          }, 200);
+        }
+
+        function exportNestBit(id) {
+          window.location.href = `/admin/nestbits/export/${id}`;
+        }
+
+        lucide.createIcons();
+      </script>
+      <script>
+  const uploadInput = document.getElementById('uploadNestBitInput');
+  const dropZone = document.getElementById('uploadNestBitDropZone');
+
+  // Show drop zone when dragging file over page
+  window.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.items && e.dataTransfer.items[0].kind === 'file') {
+      dropZone.classList.remove('hidden');
+    }
+  });
+
+  window.addEventListener('dragleave', (e) => {
+    // Only hide if leaving the window
+    if (e.clientX === 0 && e.clientY === 0) {
+      dropZone.classList.add('hidden');
+    }
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-green-400', 'text-white');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    dropZone.classList.remove('border-green-400', 'text-white');
+  });
+
+  dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropZone.classList.add('hidden');
+    dropZone.classList.remove('border-green-400', 'text-white');
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const requiredFields = ["dockerimage", "name", "version"];
+      for (const field of requiredFields) {
+        if (!json[field]) throw new Error(`Missing required field: ${field}`);
+      }
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/admin/nestbits/new';
+
+      for (const key of ['name', 'dockerimage', 'version', 'author', 'description']) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = json[key] || '';
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+
+    } catch (err) {
+      alert("Invalid JSON file: " + err.message);
+    }
+  });
+
+  // Button file input as well
+  uploadInput.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const requiredFields = ["dockerimage", "name", "version"];
+      for (const field of requiredFields) {
+        if (!json[field]) throw new Error(`Missing required field: ${field}`);
+      }
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/admin/nestbits/new';
+
+      for (const key of ['name', 'dockerimage', 'version', 'author', 'description']) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = json[key] || '';
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+
+    } catch (err) {
+      alert("Invalid JSON file: " + err.message);
+    } finally {
+      event.target.value = "";
+    }
+  });
+</script>
+  </body>
+
+</html>

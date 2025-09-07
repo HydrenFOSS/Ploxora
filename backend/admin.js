@@ -23,7 +23,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const package = require("../package.json")
-const { nodes, servers, settings, users, sessions } = require('../utilities/db');
+const { nodes, servers, settings, users, sessions, nestbits } = require('../utilities/db');
 const crypto = require("crypto");
 const addonManager = require("../addons/addon_manager");
 
@@ -377,10 +377,15 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
     for await (const [key, value] of nodes.iterator()) {
       allNodes.push({ id: key, ...value });
     }
+    const allNestBits = [];
+    for await (const [id, value] of nestbits.iterator()) {
+      allNestBits.push({ id, ...value });
+    }
     res.render("admin/servers", {
       name: await getAppName(),
       user: req.user,
       servers: allServers,
+      nestbits: allNestBits,
       users: allUsers,
       nodes: allNodes,
       req,
@@ -399,10 +404,13 @@ router.get("/admin/servers", requireLogin, requireAdmin, async (req, res) => {
 */
 router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, gb, cores, userId, nodeId, allocationId } = req.body;
+    const { name, gb, cores, userId, nodeId, nestbitId, allocationId } = req.body;
 
     const node = await nodes.get(nodeId);
     if (!node) return res.status(404).send("Node not found");
+
+    const nestbit = await nestbits.get(nestbitId);
+    if (!nestbit) return res.status(404).send("Nestbit not found");
 
     const port = parseInt(allocationId, 10);
     const allocation = node.allocations.find(a => a.allocation_port === port);
@@ -424,7 +432,8 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
           ram: gb,
           cores,
           name,
-          port: allocation.allocation_port
+          port: allocation.allocation_port,
+          nbimg: nestbit.dockerimage,
         })
       }
     );
@@ -443,7 +452,8 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
       status: "online",
       user: userId,
       node: node.id,
-      allocation: { domain: allocation.domain, ip: allocation.ip, port: allocation.allocation_port }
+      allocation: { domain: allocation.domain, ip: allocation.ip, port: allocation.allocation_port },
+      nestbit,
     };
 
     user.servers.push(server);
@@ -459,6 +469,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     await audit.log(req.user, "CREATE_SERVER", `Created server ${server.name} (${server.id}) for ${user.username}`);
     res.redirect("/admin/servers?msg=SERVER_CREATED");
   } catch (err) {
+    console.log(err)
     logger.error("Error creating server:", err);
     res.status(500).send("Error creating server");
   }
@@ -885,6 +896,50 @@ router.get("/admin/users", requireAdmin, requireLogin, async (req, res) => {
   }
 });
 /*
+* Route: /admin/users/new
+* Method: POST
+* Description: Create a new user
+* Body: { username, email, password }
+*/
+router.post("/admin/users/new", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    for await (const [id, user] of users.iterator()) {
+      if (user.email.toLowerCase() === email.toLowerCase()) {
+        return res.status(400).json({ success: false, error: "Email already in use" });
+      }
+    }
+
+    const userId = uuid();
+    const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
+
+    const newUser = {
+      id: userId,
+      username,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      servers: [],
+      banned: false,
+      profilePicture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    await users.set(userId, newUser);
+    await audit.log(req.user, "CREATE_USER", `Created new user ${username} (${userId})`);
+
+    res.redirect("/admin/users?msg=USER_CREATED")
+  } catch (err) {
+    logger.error("Error creating user:", err);
+    res.status(500).json({ success: false, error: "Failed to create user" });
+  }
+});
+
+/*
 * Route: /admin/users/ban/:id
 * Method: POST
 * Description: Ban a user from the platform.
@@ -936,14 +991,15 @@ router.post("/admin/users/unban/:id", requireAdmin, async (req, res) => {
 * Params: id (User ID)
 * Version: v1.0.0
 */
-router.post("/admin/users/delete/:id", requireAdmin, async (req, res) => {
+router.post("/admin/users/delete/:id", requireAdmin, requireLogin, async (req, res) => {
   try {
     const { id } = req.params;
     await users.delete(id);
     await audit.log(req.user, "DELETE_USER", `Deleted user with ID ${id}`);
-    res.redirect("/admin/users");
+    res.redirect("/admin/users?msg=USER_DELETED");
   } catch (err) {
-    logger.error("Delete user error:", err);
+    console.log(err)
+    logger.error("Delete user error:", err.message || err || err.stack);
     res.status(500).send("Failed to delete user");
   }
 });
@@ -968,6 +1024,94 @@ router.get("/admin/audit-logs", requireLogin, requireAdmin, async (req, res) => 
     res.status(500).send("Failed to load audit logs");
   }
 });
+/*
+* Route: /admin/nestbits
+* Description: List all NestBits
+* Method: GET
+*/
+router.get("/admin/nestbits", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const allNestBits = [];
+    for await (const [id, value] of nestbits.iterator()) {
+      allNestBits.push({ id, ...value });
+    }
+    res.render("admin/nestbits", { user: req.user, nestbits: allNestBits,name: await getAppName(), req, addons: addonManager.loadedAddons });
+  } catch (err) {
+    logger.error("Error loading NestBits:", err);
+    res.status(500).send("Failed to load NestBits");
+  }
+});
 
+/*
+* Route: /admin/nestbits/new
+* Description: Create a new NestBit
+* Method: POST
+* Body: { dockerimage, name, description, version, author }
+*/
+router.post("/admin/nestbits/new", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { dockerimage, name, description, version, author } = req.body;
+    if (!dockerimage || !name || !version) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    const id = Math.random().toString(36).substring(2, 10);
+    const newNestBit = { dockerimage, name, description, version, author, createdAt: new Date().toISOString() };
+
+    await nestbits.set(id, newNestBit);
+    await audit.log(req.user, "CREATE_NESTBIT", `Created NestBit ${name} (${id})`);
+
+    res.redirect("/admin/nestbits?msg=NESTBIT_CREATED");
+  } catch (err) {
+    logger.error("Error creating NestBit:", err);
+    res.status(500).send("Failed to create NestBit");
+  }
+});
+
+/*
+* Route: /admin/nestbits/delete
+* Description: Delete a NestBit by ID
+* Method: POST
+* Body: { id }
+*/
+router.post("/admin/nestbits/delete", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, error: "Missing NestBit ID" });
+
+    const existing = await nestbits.get(id);
+    if (!existing) return res.status(404).json({ success: false, error: "NestBit not found" });
+
+    await nestbits.delete(id);
+    await audit.log(req.user, "DELETE_NESTBIT", `Deleted NestBit ${existing.name} (${id})`);
+    res.redirect("/admin/nestbits?msg=NESTBIT_DELETED");
+  } catch (err) {
+    logger.error("Error deleting NestBit:", err);
+    res.status(500).json({ success: false, error: "Failed to delete NestBit" });
+  }
+});
+/*
+* Route: /admin/nestbits/export/:id
+* Description: Export a specific NestBit as JSON by ID
+* Method: GET
+* Params: id
+*/
+router.get("/admin/nestbits/export/:id", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const nestbit = await nestbits.get(id);
+
+    if (!nestbit) {
+      return res.status(404).json({ success: false, error: "NestBit not found" });
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename=nestbit-${nestbit.name}.json`);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ id, ...nestbit }, null, 2));
+  } catch (err) {
+    logger.error(`Error exporting NestBit ${req.params.id}:`, err);
+    res.status(500).json({ success: false, error: "Failed to export NestBit" });
+  }
+});
 const ploxora_route = "Admin | Author: ma4z | V1"
 module.exports = { router,ploxora_route };

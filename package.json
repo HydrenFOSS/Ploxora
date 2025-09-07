@@ -19,6 +19,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon index.js",
+    "nestbits": "node cli/nestbits.js",
     "new:user": "node cli/create-user.js"
   },
   "dependencies": {

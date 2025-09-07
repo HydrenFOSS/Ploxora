@@ -42,7 +42,7 @@ async function main() {
 
     await users.set(id, newUser);
 
-    console.log("User created successfully!");
+    console.log("User created successfully! Please Run npm run nestbits");
     console.log(`ID: ${id}`);
     console.log(`Username: ${username}`);
     console.log(`Email: ${email}`);

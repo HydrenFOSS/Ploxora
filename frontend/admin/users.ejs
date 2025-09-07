@@ -1,126 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-  <%- include('../components/head') %>
+<%- include('../components/head') %>
+
   <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('../components/admin_sidebar.ejs') %>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col">
-      <!-- Navbar -->
-      <%- include('../components/nav.ejs') %>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Navbar -->
+        <%- include('../components/nav.ejs') %>
 
-      <!-- Dashboard Content -->
-      <main class="p-6 space-y-8">
+          <!-- Dashboard Content -->
+          <main class="p-6 space-y-8">
 
-        <!-- Page Title -->
-        <h2 class="text-2xl font-semibold text-white tracking-wide">Dashboard Users</h2>
+            <!-- Page Title -->
+            <h2 class="text-2xl font-semibold text-white tracking-wide">Dashboard Users</h2>
 
-        <!-- Flash Messages -->
-        <% if (req.query.msg) { %>
-          <div class="bg-neutral-900 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3">
-            <div class="flex-shrink-0">
-              <% if (req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED')) { %>
-                <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
-              <% } else { %>
-                <i data-lucide="info" class="w-6 h-6 text-blue-500"></i>
-              <% } %>
-            </div>
-            <div>
-              <p class="font-semibold text-gray-200">
-                <% if (req.query.msg === "USER_BANNED") { %>User Banned<% } %>
-                <% if (req.query.msg === "USER_UNBANNED") { %>User Unbanned<% } %>
-                <% if (req.query.msg === "SERVER_CREATED") { %>Server Created<% } %>
-                <% if (req.query.msg === "SERVER_DELETED") { %>Server Deleted<% } %>
-                <% if (req.query.msg === "NODE-CREATED") { %>Node Created<% } %>
-                <% if (req.query.msg === "NODE_DELETED") { %>Node Deleted<% } %>
-                <% if (req.query.msg === "IMAGE_CREATED") { %>Image Created<% } %>
-                <% if (req.query.msg === "IMAGE_DELETED") { %>Image Deleted<% } %>
-              </p>
-              <p class="text-sm text-gray-400">
-                <% if (req.query.msg === "USER_BANNED") { %>User was successfully banned<% } %>
-                <% if (req.query.msg === "USER_UNBANNED") { %>User was successfully unbanned<% } %>
-                <% if (req.query.msg === "SERVER_CREATED") { %>Server deployed successfully<% } %>
-                <% if (req.query.msg === "SERVER_DELETED") { %>Server deleted successfully<% } %>
-                <% if (req.query.msg === "NODE-CREATED") { %>Node added successfully<% } %>
-                <% if (req.query.msg === "NODE_DELETED") { %>Node deleted successfully<% } %>
-                <% if (req.query.msg === "IMAGE_CREATED") { %>Image added successfully<% } %>
-                <% if (req.query.msg === "IMAGE_DELETED") { %>Image deleted successfully<% } %>
-              </p>
-            </div>
-          </div>
-        <% } %>
-
-        <!-- Users Table -->
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
-          <h3 class="text-xl font-semibold text-white mb-4">Users</h3>
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
-                <th class="px-6 py-3 rounded-l-lg">Profile</th>
-                <th class="px-6 py-3">Username</th>
-                <th class="px-6 py-3">Email</th>
-                <th class="px-6 py-3">ID</th>
-                <th class="px-6 py-3">Role</th>
-                <th class="px-6 py-3 rounded-r-lg">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-800 text-gray-400">
-              <% if (Array.isArray(users) && users.length > 0) { %>
-                <% users.forEach(function(u) { %>
-                  <tr class="hover:bg-neutral-900 transition">
-                    <td class="px-6 py-3">
-                      <img src="<%= u.profilePicture %>" alt="<%= u.username %>" class="w-8 h-8 rounded-full">
-                    </td>
-                    <td class="px-6 py-3 font-medium text-gray-200"><%= u.username %></td>
-                    <td class="px-6 py-3 text-gray-300"><%= u.email %></td>
-                    <td class="px-6 py-3 text-gray-300"><%= u.id %></td>
-                    <td class="px-6 py-3">
-                      <% if (u.admin) { %>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-yellow-600/20 text-yellow-400 text-sm font-medium">
-                          <i data-lucide="shield" class="w-4 h-4 mr-1"></i> Admin
-                        </span>
-                      <% } else { %>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-700/50 text-gray-300 text-sm font-medium">
-                          <i data-lucide="user" class="w-4 h-4 mr-1"></i> <%= u.banned ? "Banned" : "User" %>
-                        </span>
+            <!-- Flash Messages -->
+            <% if (req.query.msg) { %>
+              <div class="bg-neutral-900 rounded-xl p-4 shadow-lg border border-[#2a2a2a] flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                  <% if (req.query.msg.includes('BANNED') || req.query.msg.includes('CREATED') || req.query.msg.includes('DELETED')) { %>
+                    <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
+                    <% } else { %>
+                      <i data-lucide="info" class="w-6 h-6 text-blue-500"></i>
                       <% } %>
-                    </td>
-                    <td class="px-6 py-3">
-                      <div class="flex items-center space-x-2">
-                        <% if (u.username === user.username) { %>
-                          <button disabled class="bg-gray-700 text-gray-500 text-sm px-3 py-1 rounded-lg cursor-not-allowed">Cannot</button>
-                        <% } else { %>
-                          <!-- Delete -->
-                          <form action="/admin/users/<%= u.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to delete <%= u.username %>?');">
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded-lg transition">Delete</button>
-                          </form>
-                          <!-- Ban/Unban -->
-                          <% if (!u.banned) { %>
-                            <form action="/admin/users/ban/<%= u.id %>" method="POST">
-                              <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-3 py-1 rounded-lg transition">Ban</button>
-                            </form>
-                          <% } else { %>
-                            <form action="/admin/users/unban/<%= u.id %>" method="POST">
-                              <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded-lg transition">Unban</button>
-                            </form>
-                          <% } %>
-                        <% } %>
-                      </div>
-                    </td>
-                  </tr>
-                <% }) %>
-              <% } else { %>
-                <tr>
-                  <td colspan="6" class="text-center px-6 py-6 text-gray-500 italic">No users yet.</td>
-                </tr>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-200">
+                    <% if (req.query.msg==="USER_BANNED" ) { %>User Banned<% } %>
+                    <% if (req.query.msg==="USER_DELETED" ) { %>User Deleted<% } %>
+                     <% if (req.query.msg==="USER_CREATED" ) { %>User Created<% } %>
+                        <% if (req.query.msg==="USER_UNBANNED" ) { %>User Unbanned<% } %>
+                            <% if (req.query.msg==="SERVER_CREATED" ) { %>Server Created<% } %>
+                                <% if (req.query.msg==="SERVER_DELETED" ) { %>Server Deleted<% } %>
+                                    <% if (req.query.msg==="NODE-CREATED" ) { %>Node Created<% } %>
+                                        <% if (req.query.msg==="NODE_DELETED" ) { %>Node Deleted<% } %>
+                                            <% if (req.query.msg==="IMAGE_CREATED" ) { %>Image Created<% } %>
+                                                <% if (req.query.msg==="IMAGE_DELETED" ) { %>Image Deleted<% } %>
+                  </p>
+                  <p class="text-sm text-gray-400">
+                    <% if (req.query.msg==="USER_BANNED" ) { %>User was successfully banned<% } %>
+                     <% if (req.query.msg==="USER_CREATED" ) { %>User was successfully created<% } %>
+                     <% if (req.query.msg==="USER_DELETED" ) { %>User was successfully deleted<% } %>
+                        <% if (req.query.msg==="USER_UNBANNED" ) { %>User was successfully unbanned<% } %>
+                            <% if (req.query.msg==="SERVER_CREATED" ) { %>Server deployed successfully<% } %>
+                                <% if (req.query.msg==="SERVER_DELETED" ) { %>Server deleted successfully<% } %>
+                                    <% if (req.query.msg==="NODE-CREATED" ) { %>Node added successfully<% } %>
+                                        <% if (req.query.msg==="NODE_DELETED" ) { %>Node deleted successfully<% } %>
+                                            <% if (req.query.msg==="IMAGE_CREATED" ) { %>Image added successfully<% } %>
+                                                <% if (req.query.msg==="IMAGE_DELETED" ) { %>Image deleted successfully
+                                                  <% } %>
+                  </p>
+                </div>
+              </div>
               <% } %>
-            </tbody>
-          </table>
-        </div>
-      </main>
-    </div>
-    <script>lucide.createIcons();</script>
-  </body>
+
+                <!-- Users Table -->
+                <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
+                        <th class="px-6 py-3 rounded-l-lg">Profile</th>
+                        <th class="px-6 py-3">Username</th>
+                        <th class="px-6 py-3">Email</th>
+                        <th class="px-6 py-3">ID</th>
+                        <th class="px-6 py-3">Role</th>
+                        <th class="px-6 py-3 rounded-r-lg flex justify-between items-center">
+                          Actions
+                          <button id="openUserModal"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition">
+                            + 
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-800 text-gray-400">
+                      <% if (Array.isArray(users) && users.length> 0) { %>
+                        <% users.forEach(function(u) { %>
+                          <tr class="hover:bg-neutral-900 transition">
+                            <td class="px-6 py-3">
+                              <img src="<%= u.profilePicture %>" alt="<%= u.username %>" class="w-8 h-8 rounded-full">
+                            </td>
+                            <td class="px-6 py-3 font-medium text-gray-200">
+                              <%= u.username %>
+                            </td>
+                            <td class="px-6 py-3 text-gray-300">
+                              <%= u.email %>
+                            </td>
+                            <td class="px-6 py-3 text-gray-300">
+                              <%= u.id.slice(0, 8) %>...
+                            </td>
+                            <td class="px-6 py-3">
+                              <% if (u.admin) { %>
+                                <span
+                                  class="inline-flex items-center px-3 py-1 rounded-full bg-yellow-600/20 text-yellow-400 text-sm font-medium">
+                                  <i data-lucide="shield" class="w-4 h-4 mr-1"></i> Admin
+                                </span>
+                                <% } else { %>
+                                  <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full bg-gray-700/50 text-gray-300 text-sm font-medium">
+                                    <i data-lucide="user" class="w-4 h-4 mr-1"></i>
+                                    <%= u.banned ? "Banned" : "User" %>
+                                  </span>
+                                  <% } %>
+                            </td>
+                            <td class="px-6 py-3">
+                              <div class="flex items-center space-x-2">
+                                <% if (u.username===user.username) { %>
+                                  <button disabled
+                                    class="bg-gray-700 text-gray-500 text-sm px-3 py-1 rounded-lg cursor-not-allowed">Cannot</button>
+                                  <% } else { %>
+                                    <!-- Delete -->
+                                    <form action="/admin/users/delete/<%= u.id %>" method="POST"
+                                      onsubmit="return confirm('Are you sure you want to delete <%= u.username %>?');">
+                                      <button type="submit"
+                                        class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded-lg transition">Delete</button>
+                                    </form>
+                                    <!-- Ban/Unban -->
+                                    <% if (!u.banned) { %>
+                                      <form action="/admin/users/ban/<%= u.id %>" method="POST">
+                                        <button type="submit"
+                                          class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-3 py-1 rounded-lg transition">Ban</button>
+                                      </form>
+                                      <% } else { %>
+                                        <form action="/admin/users/unban/<%= u.id %>" method="POST">
+                                          <button type="submit"
+                                            class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded-lg transition">Unban</button>
+                                        </form>
+                                        <% } %>
+                                          <% } %>
+                              </div>
+                            </td>
+                          </tr>
+                          <% }) %>
+                            <% } else { %>
+                              <tr>
+                                <td colspan="6" class="text-center px-6 py-6 text-gray-500 italic">No users yet.</td>
+                              </tr>
+                              <% } %>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- New User Modal -->
+                <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                  <div class="bg-neutral-900 rounded-xl shadow-lg p-6 w-full max-w-md relative">
+                    <button id="closeUserModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200">
+                      <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                    <h3 class="text-xl font-semibold text-white mb-4">Create New User</h3>
+                    <form id="createUserForm" action="/admin/users/new" method="POST" class="space-y-4">
+                      <div>
+                        <label class="block text-gray-300 mb-1" for="username">Username</label>
+                        <input type="text" name="username" id="username" required
+                          class="w-full px-3 py-2 rounded-lg bg-neutral-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div>
+                        <label class="block text-gray-300 mb-1" for="email">Email</label>
+                        <input type="email" name="email" id="email" required
+                          class="w-full px-3 py-2 rounded-lg bg-neutral-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div>
+                        <label class="block text-gray-300 mb-1" for="password">Password</label>
+                        <input type="password" name="password" id="password" required
+                          class="w-full px-3 py-2 rounded-lg bg-neutral-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelUserModal"
+                          class="bg-red-700 hover:bg-red-600 text-gray-200 px-4 py-2 rounded-3xl transition">Cancel</button>
+                        <button type="submit"
+                          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-3xl transition">Create</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+          </main>
+      </div>
+      <script>
+        const userModal = document.getElementById('userModal');
+        const openBtn = document.getElementById('openUserModal');
+        const closeBtn = document.getElementById('closeUserModal');
+        const cancelBtn = document.getElementById('cancelUserModal');
+
+        openBtn.addEventListener('click', () => userModal.classList.remove('hidden'));
+        closeBtn.addEventListener('click', () => userModal.classList.add('hidden'));
+        cancelBtn.addEventListener('click', () => userModal.classList.add('hidden'));
+
+        userModal.addEventListener('click', (e) => {
+          if (e.target === userModal) userModal.classList.add('hidden');
+        });
+
+        lucide.createIcons();
+      </script>
+      </body>
+
 </html>

@@ -149,6 +149,16 @@
                   <% }) %>
                 </select>
               </div>
+               <div>
+                <label class="block text-gray-300 mb-1">Assign NestBit</label>
+                <select id="nestbitSelect" name="nestbitId" required
+                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  <option value="">-- Select NestBit --</option>
+                  <% nestbits.forEach(nb=> { %>
+                    <option value="<%= nb.id %>"><%= nb.name %></option>
+                  <% }) %>
+                </select>
+              </div>
               <div>
                 <label class="block text-gray-300 mb-1">Assign Allocation (USED FOR SSH ONLY!)</label>
                 <select id="allocationSelect" name="allocationId" required disabled
