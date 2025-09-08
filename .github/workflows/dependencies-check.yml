@@ -2,13 +2,12 @@ name: "Automatic Dependency Update"
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *'  # daily at midnight UTC
+  workflow_dispatch:      # allows manual trigger
 
 jobs:
   update-dependencies:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -21,20 +20,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run npm update
+      - name: Update dependencies (excluding keyv and @keyv/sqlite)
         run: |
-          # List all packages to update except keyv and @keyv/sqlite
           for pkg in $(jq -r '.dependencies | keys[]' package.json); do
             if [[ "$pkg" != "keyv" && "$pkg" != "@keyv/sqlite" ]]; then
               npm install "$pkg@latest"
             fi
           done
 
-      - name: Commit and push updates
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b dependency-update || git checkout dependency-update
           git add package.json package-lock.json
           git commit -m "chore: update npm dependencies" || echo "No changes to commit"
-          git push --set-upstream origin dependency-update --force
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update npm dependencies"
+          branch: dependency-update
+          title: "Automatic dependency updates"
+          body: |
+            just dependencies update DO IT BRO?
+          labels: dependencies
