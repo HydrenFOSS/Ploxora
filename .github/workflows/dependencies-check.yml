@@ -1,0 +1,41 @@
+name: "Automatic Dependency Update"
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'   # or your preferred Node version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run npm update
+        run: |
+          # List all packages to update except keyv and @keyv/sqlite
+          for pkg in $(jq -r '.dependencies | keys[]' package.json); do
+            if [[ "$pkg" != "keyv" && "$pkg" != "@keyv/sqlite" ]]; then
+              npm install "$pkg@latest"
+            fi
+          done
+
+      - name: Commit and push updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: update npm dependencies" || echo "No changes to commit"
+          git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
