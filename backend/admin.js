@@ -61,6 +61,18 @@ function uuid() {
     hex.slice(20)
   );
 }
+function buildNodeUrl(node, path) {
+    // DEBUG: process.stdout.write('executed\n'); // flushes immediately
+    const base = `${node.protocol || "http"}://${node.address}`;
+    const portPart = node.portEnabled && node.port ? `:${node.port}` : "";
+    try {
+        // DEBUG: logger.init(`${base}${portPart}${path}`);
+    } catch (e) {
+        console.error('logger.init failed:', e);
+    }
+    return `${base}${portPart}${path}`;
+}
+
 
 async function requireAdmin(req, res, next) {
   const token = req.cookies["SESSION-COOKIE"];
@@ -129,8 +141,8 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
 
     try {
       const response = await fetch(
-        `http://${node.address}:${node.port}/checkdockerrunning?x-verification-key=${node.token}`,
-        { timeout: 3000 }
+         buildNodeUrl(node, `/checkdockerrunning?x-verification-key=${node.token}`),
+         { timeout: 3000 }
       );
 
       if (response.ok) {
@@ -142,7 +154,7 @@ router.get("/admin/node/:id/data", requireAdmin, async (req, res) => {
         }
       }
     } catch (err) {
-      //logger.error(`Health check failed for node ${nodeId}:`, err.message);
+      logger.error(`Health check failed for node ${nodeId}:`, err.message);
       status = "Offline";
     }
     
@@ -252,7 +264,7 @@ router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
 
       try {
         const response = await fetch(
-          `http://${value.address}:${value.port}/checkdockerrunning?x-verification-key=${value.token}`,
+          buildNodeUrl(node, `/checkdockerrunning?x-verification-key=${node.token}`),
           { timeout: 3000 }
         );
 
@@ -263,7 +275,7 @@ router.get("/admin/nodes/json", requireAdmin, async (req, res) => {
           }
         }
       } catch (err) {
-        //logger.error(`Health check failed for node ${key}: ${err.message}`);
+        logger.error(`Health check failed for node ${key}: ${err.message}`);
       }
 
       if (value.status !== status) {
@@ -302,7 +314,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
         const timeout = setTimeout(() => controller.abort(), 3000);
 
         const response = await fetch(
-          `http://${value.address}:${value.port}/checkdockerrunning?x-verification-key=${value.token}`,
+          buildNodeUrl(value, `/checkdockerrunning?x-verification-key=${value.token}`),
           { signal: controller.signal }
         );
         clearTimeout(timeout);
@@ -320,10 +332,15 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
       // Fetch Node version
       let version = "Unknown";
       try {
+        const verController = new AbortController();
+        const verTimeout = setTimeout(() => verController.abort(), 3000);
+
         const ver_res = await fetch(
-          `http://${value.address}:${value.port}/version?x-verification-key=${value.token}`,
-          { timeout: 3000 }
+          buildNodeUrl(value, `/version?x-verification-key=${value.token}`),
+          { signal: verController.signal }
         );
+        clearTimeout(verTimeout);
+
         if (ver_res.ok) {
           const ver_data = await ver_res.json();
           version = ver_data.version || "Unknown";
@@ -354,6 +371,7 @@ router.get("/admin/nodes", requireLogin, requireAdmin, async (req, res) => {
     res.status(500).send("Error loading nodes");
   }
 });
+
 
 /*
 * Route: /admin/servers
@@ -424,7 +442,7 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     if (!Array.isArray(user.servers)) user.servers = [];
 
     const deployRes = await fetch(
-      `http://${node.address}:${node.port}/deploy?x-verification-key=${node.token}`,
+      buildNodeUrl(node, `/deploy?x-verification-key=${node.token}`),
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -500,7 +518,7 @@ router.post("/admin/servers/delete/:id", requireLogin, requireAdmin, async (req,
     // Tell node to delete container
     try {
       await fetch(
-        `http://${node.address}:${node.port}/vps/delete?x-verification-key=${node.token}`,
+        buildNodeUrl(node, `/vps/delete?x-verification-key=${node.token}`),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -558,7 +576,7 @@ router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, r
     for (const server of linkedServers) {
       try {
          await fetch(
-            `http://${node.address}:${node.port}/vps/delete?x-verification-key=${node.token}`,
+            buildNodeUrl(node, `/vps/delete?x-verification-key=${node.token}`),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -593,30 +611,30 @@ router.post("/admin/nodes/delete/:id", requireLogin, requireAdmin, async (req, r
 * Route: /admin/nodes/create
 * Method: POST
 * Description: Create a new node and save it to the database.
-* Body: { name, address, port, ram, cores }
-* Version: v1.0.0
+* Body: { name, address, port, ram, cores, protocol, portEnabled }
+* Version: v1.1.0
 */
-router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) => {
+router.post("/admin/nodes/create", requireLogin, requireAdmin, async (req, res) => {
   try {
-    const { name, address, port, ram,cores } = req.body;
+    const { name, address, port, ram, cores, protocol, portEnabled } = req.body;
 
-    // Generate random ID + token
     const id = Math.random().toString(36).substring(2, 10);
     const token = Math.random().toString(36).substring(2, 20);
 
-    // Try to get location from IP address
     let location = "UNKNOWN";
     try {
       const response = await fetch(`http://ip-api.com/json/${address}`);
       const data = await response.json();
       if (data && data.countryCode) {
-        location = data.countryCode; // like "US", "DE"
+        location = data.countryCode;
       }
     } catch (err) {
       logger.error("Location lookup failed:", err.message);
     }
 
-    // Node object
+    const finalProtocol = protocol && ["http", "https"].includes(protocol) ? protocol : "http";
+    const finalPortEnabled = portEnabled === "true" || portEnabled === true;
+
     const node = {
       id,
       token,
@@ -624,14 +642,18 @@ router.post("/admin/nodes/create",requireLogin, requireAdmin, async (req, res) =
       cores,
       name,
       address,
-      port,
+      port: finalPortEnabled ? port : null,
+      protocol: finalProtocol,
+      portEnabled: finalPortEnabled,
       allocations: [],
       location,
       status: "Offline",
       createdAt: new Date().toISOString()
     };
+
     await nodes.set(id, node);
-    await audit.log(req.user, "CREATE_NODE", `Created node ${node.name} (${node.id}) at ${node.address}:${node.port}`);
+    await audit.log(req.user, "CREATE_NODE", `Created node ${node.name} (${node.id}) at ${node.address}:${node.port || "no-port"} [${finalProtocol}]`);
+
     res.redirect("/admin/nodes?msg=NODE-CREATED");
   } catch (error) {
     logger.error("Error creating node:", error);
@@ -659,7 +681,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
     let status = "Offline";
     try {
       const response = await fetch(
-        `http://${node.address}:${node.port}/checkdockerrunning?x-verification-key=${node.token}`,
+        buildNodeUrl(node, `/checkdockerrunning?x-verification-key=${node.token}`),
         { timeout: 3000 }
       );
 
@@ -668,7 +690,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
         status = data.docker === "running" ? "Online" : "Offline";
       }
     } catch (err) {
-      //logger.error(`Health check failed for node ${nodeId}:`, err.message);
+      logger.error(`Health check failed for node ${nodeId}:`, err.message);
       status = "Offline";
     }
 
@@ -681,7 +703,7 @@ router.get("/admin/node/:id", requireAdmin, requireLogin, async (req, res) => {
     let fewdata = {}
     try {
       const ver_res = await fetch(
-        `http://${node.address}:${node.port}/version?x-verification-key=${node.token}`,
+        buildNodeUrl(node, `/version?x-verification-key=${node.token}`),
         { timeout: 3000 }
       );
       if (ver_res.ok) {
@@ -844,7 +866,7 @@ router.get("/admin/node/:id/docker-usage", requireAdmin, async (req, res) => {
       const timeout = setTimeout(() => controller.abort(), 5000); 
 
       const response = await fetch(
-        `http://${node.address}:${node.port}/docker-usage?x-verification-key=${node.token}`,
+        buildNodeUrl(node, `/docker-usage?x-verification-key=${node.token}`),
         { signal: controller.signal }
       );
 

@@ -19,8 +19,8 @@ class Logger {
 
   format(level, msg) {
     const c = this.colors;
-    const timestamp = `${c.dim}[${new Date().toISOString()}]${c.reset}`;
-    const prefix = `${c.magenta}[${this.prefix}]${c.reset}`;
+    const timestamp = `${c.dim}[${new Date().toLocaleTimeString()}]${c.reset}`;
+    const prefix = `${c.yellow}[${this.prefix}]${c.reset}`;
 
     const levelDots = {
       debug: c.gray + "●" + c.reset,

@@ -61,6 +61,11 @@ router.use(session({
 }));
 
 const addonManager = require("../addons/addon_manager");
+function buildNodeUrl(node, path) {
+  const base = `${node.protocol || "http"}://${node.address}`;
+  const portPart = node.portEnabled && node.port ? `:${node.port}` : "";
+  return `${base}${portPart}${path}`;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -246,7 +251,7 @@ router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
 
     // fetch returns a Response object, you need to parse JSON
     const response = await fetch(
-      `http://${node.address}:${node.port}/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`
+      buildNodeUrl(node, `/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`)
     );
 
     if (!response.ok) {
@@ -352,7 +357,7 @@ router.post("/vps/action/:containerId/:action", requireLogin, requireServerAcces
     if (!node) return res.status(500).json({ error: "Node not found" });
 
     const response = await fetch(
-      `http://${node.address}:${node.port}/action/${action}/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`,
+      buildNodeUrl(node, `/action/${action}/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`),
       { method: "POST" }
     );
 
@@ -391,7 +396,7 @@ router.post("/vps/ressh/:containerId", requireLogin, requireServerAccess, async 
 
     // Check container status
     const statusResp = await fetch(
-      `http://${node.address}:${node.port}/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`
+      buildNodeUrl(node, `/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`)
     );
     if (!statusResp.ok) {
       const text = await statusResp.text();
@@ -403,7 +408,7 @@ router.post("/vps/ressh/:containerId", requireLogin, requireServerAccess, async 
     let sshData = { ssh: "N/A" };
     try {
       const sshResp = await fetch(
-        `http://${node.address}:${node.port}/ressh?x-verification-key=${encodeURIComponent(node.token)}`,
+        buildNodeUrl(node, `/ressh?x-verification-key=${encodeURIComponent(node.token)}`),
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ containerId }) }
       );
 

@@ -15,7 +15,7 @@
     <main class="flex-1 p-6 space-y-8">
 
       <!-- Nodes Table -->
-      <section class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+      <section id="nodestable" class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-2xl font-semibold text-gray-200 tracking-wide">Dashboard Nodes</h2>
           <button onclick="openCNModal()"
@@ -86,14 +86,11 @@
                     <td class="px-6 py-3 font-medium text-gray-200 flex items-center gap-2">
                       <div class="relative group flex items-center">
                         <% if (node.status==="Online" ) { %>
-                          <!-- Green Heart for Online -->
                           <i data-lucide="heart-pulse" 
                               class="w-6 h-6 text-green-500 fill-green-500 stroke-neutral-950"></i>
                         <% } else { %>
-                          <!-- Red Heart for Offline -->
                           <i data-lucide="heart" class="w-5 h-5 text-red-500 animate-pulse"></i>
                         <% } %>
-                        <!-- Tooltip -->
                         <span
                           class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-neutral-800 text-gray-300 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
                           <%= node.version %>
@@ -106,17 +103,14 @@
                     <td class="px-6 py-3 text-gray-300"><%= node.port || "N/A" %></td>
                     <td class="px-6 py-3 text-gray-300"><%= node.location || "Unknown" %></td>
                     <td class="px-6 py-3 flex gap-2">
-                      <!-- Init Command -->
                       <button onclick="openInitComd('<%= node.id %>')"
                         class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
                         Init Command
                       </button>
-                       <button onclick="window.location.href=`/admin/node/<%= node.id %>`"
+                      <button onclick="window.location.href=`/admin/node/<%= node.id %>`"
                         class="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition">
                         Manage
                       </button>
-
-                      <!-- Delete Node -->
                       <form action="/admin/nodes/delete/<%= node.id %>" method="POST"
                         onsubmit="return confirm('Are you sure you want to delete this node? This cannot be undone.');">
                         <button type="submit"
@@ -159,83 +153,124 @@
         </div>
       </div>
 
-<div id="createNodeModal"
-  class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
-  <div id="createNodeModalContent"
-       class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-[#2a2a2a] transform scale-95 opacity-0 transition-all duration-200">
-    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-      <i data-lucide="server" class="w-6 h-6 text-blue-500"></i>
-      Create New Node
-    </h2>
+        <section id="createNodeModal" class="hidden">
+          <div id="createNodeModalContent" class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full border border-[#2a2a2a]">
+          <h2 class="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+            <i data-lucide="server" class="w-7 h-7 text-blue-500"></i>
+            Create New Node
+          </h2>
 
+          <form action="/admin/nodes/create" method="POST" class="space-y-6">
+            <div>
+              <label class="block text-gray-300 mb-1">Node Name</label>
+              <input type="text" name="name" required
+                class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
 
-    <form action="/admin/nodes/create" method="POST" class="space-y-5">
-      <div>
-        <label class="block text-gray-300 mb-1">Node Name</label>
-        <input type="text" name="name" required
-          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-      </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-300 mb-1">Node RAM (GB)</label>
+                <input type="text" name="ram" required
+                  class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400" />
+              </div>
+              <div>
+                <label class="block text-gray-300 mb-1">Node Cores</label>
+                <input type="text" name="cores" required
+                  class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400" />
+              </div>
+            </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-gray-300 mb-1">Node RAM (GB)</label>
-          <input type="text" name="ram" required
-            class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+            <div>
+              <label class="block text-gray-300 mb-1">
+                Address
+                <span class="text-sm text-gray-500">(no <code>http://</code> or <code>https://</code>, no trailing <code>/</code>)</span>
+              </label>
+              <input type="text" name="address" required
+                class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            </div>
+
+            <div>
+              <label class="block text-gray-300 mb-1">Protocol</label>
+              <select name="protocol"
+                class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="http" selected>HTTP</option>
+                <option value="https">HTTPS</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-gray-300 mb-1">Enable Port</label>
+              <select name="portEnabled" id="portEnabledSelect"
+                class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="true" selected>Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+
+            <div id="portWrapper">
+              <label class="block text-gray-300 mb-1">Port</label>
+              <input type="number" name="port"
+                class="w-full p-4 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            </div>
+
+            <div class="flex flex-col md:flex-row md:justify-end md:space-x-4 gap-3 pt-6">
+              <button type="button" onclick="closeCNModal()"
+                class="px-6 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white transition">
+                Cancel
+              </button>
+              <button type="submit"
+                class="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition shadow-lg">
+                Save
+              </button>
+            </div>
+          </form>
         </div>
-        <div>
-          <label class="block text-gray-300 mb-1">Node Cores</label>
-          <input type="text" name="cores" required
-            class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-gray-300 mb-1">Address</label>
-        <input type="text" name="address" required
-          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
-      </div>
-
-      <div>
-        <label class="block text-gray-300 mb-1">Port</label>
-        <input type="number" name="port" required
-          class="w-full p-3 rounded-xl bg-[#111] border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
-      </div>
-
-      <div class="flex justify-end space-x-3 pt-4">
-        <button type="button" onclick="closeCNModal()"
-          class="px-5 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 text-white transition shadow-sm">
-          Cancel
-        </button>
-        <button type="submit"
-          class="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold transition shadow-lg">
-          Save
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+      </section>
 
     </main>
   </div>
+
   <script>
-     function openCNModal() {
-    const modal = document.getElementById('createNodeModal');
-    const content = document.getElementById('createNodeModalContent');
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-      content.classList.remove('scale-95', 'opacity-0');
-      content.classList.add('scale-100', 'opacity-100');
-    }, 10);
-  }
+    const portSelect = document.getElementById("portEnabledSelect");
+    const portWrapper = document.getElementById("portWrapper");
+    const portInput = portWrapper.querySelector("input");
+
+    function togglePort() {
+      if (portSelect.value === "false") {
+        portWrapper.style.display = "none";
+        portInput.value = "";
+      } else {
+        portWrapper.style.display = "block";
+      }
+    }
+
+    portSelect.addEventListener("change", togglePort);
+    togglePort()
+  </script>
+  <script>
+    function openCNModal() {
+      const modal = document.getElementById('createNodeModal');
+      const nodestable = document.getElementById('nodestable');
+      const content = document.getElementById('createNodeModalContent');
+      nodestable.classList.add('hidden')
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
 
     function closeCNModal() {
-    const modal = document.getElementById('createNodeModal');
-    const content = document.getElementById('createNodeModalContent');
-    content.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-      modal.classList.add('hidden');
-    }, 200);
-  }
+      const modal = document.getElementById('createNodeModal');
+      const nodestable = document.getElementById('nodestable');
+      const content = document.getElementById('createNodeModalContent');
+      nodestable.classList.remove('hidden')
+      content.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
     function closeInitComd() {
       document.getElementById("initCommandModal").classList.add("hidden");
     }

@@ -79,7 +79,7 @@
                       <td class="px-6 py-3 font-medium text-gray-200"><%= server.name || "Unnamed server" %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.containerId ? server.containerId.substring(0, 12) : "N/A") %></td>
-                      <td class="px-6 py-3 text-gray-300"><%= server.createdAt || "Unknown" %></td>
+                      <td class="px-6 py-3 text-gray-300"><%- server.createdAt ? new Date(server.createdAt).toISOString().replace("T", " ").substring(0, 16) : "Unknown" %></td>
                       <td class="px-6 py-3 text-gray-300"><%= server.user || "Unknown" %></td>
                       <td class="px-6 py-3 flex gap-2">
                         <!-- Delete Server -->
