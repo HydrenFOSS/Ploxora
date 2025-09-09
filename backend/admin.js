@@ -460,11 +460,16 @@ router.post("/admin/servers/create", requireLogin, requireAdmin, async (req, res
     if (!deployRes.ok) {
       return res.status(500).send(result.message || "Failed to create server");
     }
-
+    let serverip = `ssh root@${allocation.domain || allocation.ip} -p ${allocation.allocation_port}`;
+    if (result.port) {
+      serverip = `https://${allocation.domain}:${result.port}/vnc.html`;
+    } else {
+      // does nothing...
+    }
     const server = {
       id: uuid(),
       name,
-      ssh: `ssh root@${allocation.domain || allocation.ip} -p ${allocation.allocation_port}`,
+      ssh: serverip,
       containerId: result.containerId,
       createdAt: new Date(),
       status: "online",

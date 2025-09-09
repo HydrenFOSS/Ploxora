@@ -280,7 +280,7 @@
                 // refresh Lucide icons after updating HTML
                 lucide.createIcons();
               } catch (err) {
-                console.log(err);
+                //console.log(err);
                 if (!activePopupIds.has(containerId)) {
                   statusSpan.innerHTML = `<i data-lucide="server-off" class="inline w-3.5 h-3.5 mr-1"></i>Error`;
                   statusSpan.className = `server-status inline-flex items-center text-[11px] font-semibold text-white px-2 py-0.5 rounded ${bgMap.error}`;

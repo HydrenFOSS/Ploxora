@@ -43,12 +43,16 @@
         </h1>
 
         <div class="flex items-center space-x-2 text-sm md:text-base">
+          <% if (server.ssh.includes('https')) { %>
           <span class="font-semibold">Access:</span>
+          <% } else { %>
+            <span class="font-semibold">SSH:</span>
+            <% } %>
           <% if (server.ssh) { %>
-            <% if (!server.ssh.includes('root')) { %>
-              <a href="http://<%= server.ssh %>/vnc.html" target="_blank"
+            <% if (server.ssh.includes('https')) { %>
+              <a href="<%= server.ssh %>" target="_blank"
                 class="px-3 py-1 bg-neutral-900 rounded text-blue-400 font-mono whitespace-nowrap hover:underline">
-                <%= server.ssh %>/vnc.html
+                <%= server.ssh %>
               </a>
               <% } else { %>
                 <span class="px-3 py-1 bg-neutral-900 rounded text-green-400 font-mono whitespace-nowrap">
@@ -274,7 +278,7 @@ const networkChart = new Chart(document.getElementById("networkChart"), {
 });
 
 // --- Buttons ---
-<% if (!server.ssh.includes('root')) { %>
+<% if (server.ssh.includes('https')) { %>
 const btnRessh = document.getElementById("btn-ressh");
 <% } %>
 const btnStart = document.getElementById("btn-start");
@@ -428,7 +432,7 @@ updateVPS();
 setInterval(updateVPS, 2000);
 
 // --- Ressh ---
-<% if (!server.ssh.includes('root')) { %>
+<% if (server.ssh.includes('https')) { %>
 btnRessh.addEventListener("click", async () => {
   addLog("ACTION", "Fetching SSH session...");
   btnRessh.disabled = true;
