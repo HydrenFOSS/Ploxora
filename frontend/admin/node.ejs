@@ -188,9 +188,15 @@
                           <td class="py-2">
                             <%= alloc.ip || "-" %>
                           </td>
-                          <td class="py-2">
-                            <%= alloc.isBeingUsed ? "<span class="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition">Yes</span>" : "❌ No" %>
-                          </td>
+                        <td class="py-2">
+                          <% if (alloc.isBeingUsed) { %>
+                            <span
+                              class="px-3 py-1 rounded-lg bg-green-600 text-white text-sm font-medium transition">Yes</span>
+                            <% } else { %>
+                               <span
+                              class="px-3 py-1 rounded-lg bg-red-600 text-white text-sm font-medium transition">No</span>
+                              <% } %>
+                        </td>
                         </tr>
                         <% }) %>
                           <% } else { %>

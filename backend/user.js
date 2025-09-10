@@ -66,7 +66,17 @@ function buildNodeUrl(node, path) {
   const portPart = node.portEnabled && node.port ? `:${node.port}` : "";
   return `${base}${portPart}${path}`;
 }
+async function requireAdmin(req, res, next) {
+  const token = req.cookies["SESSION-COOKIE"];
+  const userId = await sessions.get(token);
+  const user = await users.get(userId);
+  const isAdmin = adminEmails.includes(user.email.toLowerCase());
+  if (!isAdmin) {
+    return res.redirect('/')
+  }
 
+  next();
+}
 /*
 |--------------------------------------------------------------------------
 | Client API System
@@ -202,10 +212,12 @@ router.post('/settings/delete-account', requireLogin, async (req, res) => {
 router.get("/dashboard", async (req, res) => {
   const token = req.cookies["SESSION-COOKIE"];
   if (!token) return res.redirect("/?err=LOGIN-IN-FIRST");
+
   let count = 0;
   for await (const _ of nodes.iterator()) {
     count++;
   }
+
   const userId = await sessions.get(token);
   if (!userId) {
     res.clearCookie("SESSION-COOKIE");
@@ -219,52 +231,28 @@ router.get("/dashboard", async (req, res) => {
   }
 
   const name = await getAppName();
-  res.render('dashboard', { user, name, nodes: count, addons: addonManager.loadedAddons });
-});
 
-/*
-* Route: GET /server/stats/:containerId
-* Description: Fetch live server stats for a given container from node.
-* Params: containerId
-* Response: JSON stats (CPU, RAM, etc.)
-* Version: v1.0.0
-*/
-router.get("/server/stats/:containerId", requireLogin, async (req, res) => {
-  const { containerId } = req.params;
-  const q = req.user;
+  let servers;
 
-  try {
-    const user = await users.get(q.id);
-    if (!user) {
-      return res.status(403).json({ error: "User not found" });
+  if (req.query.admin === "seeothers" && user.admin === true) {
+    servers = [];
+    for await (const [key, value] of serversDB.iterator()) {
+      if (value.user !== user.id) {
+       servers.push(value);
+      }
     }
-
-    const server = user.servers?.find(s => s.containerId === containerId);
-    if (!server) {
-      return res.status(403).json({ error: "Not allowed" });
-    }
-
-    const node = await nodes.get(server.node);
-    if (!node) {
-      return res.status(500).json({ error: "Node not found" });
-    }
-
-    // fetch returns a Response object, you need to parse JSON
-    const response = await fetch(
-      buildNodeUrl(node, `/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`)
-    );
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: "Failed to fetch from node" });
-    }
-
-    const data = await response.json(); // 👈 parse JSON
-    res.json(data);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to fetch stats", details: err.message });
+  } else {
+    servers = user.servers || [];
   }
+
+  res.render("dashboard", {
+    user,
+    servers,
+    name,
+    nodes: count,
+    watchingOthers: user.admin && req.query.admin === "seeothers",
+    addons: addonManager.loadedAddons,
+  });
 });
 /*
 * Function: getServerByContainerId(containerId)
@@ -280,7 +268,7 @@ async function getServerByContainerId(containerId) {
 
 /*
 * Middleware: requireServerAccess
-* Ensures the logged-in user is either the owner or a subuser of the server.
+* Ensures the logged-in user is either the owner, a subuser, or an admin.
 * Attaches the server object to req.server if access is granted.
 */
 async function requireServerAccess(req, res, next) {
@@ -296,7 +284,7 @@ async function requireServerAccess(req, res, next) {
     const isOwner = user.servers?.some(s => s.containerId === containerId);
     const isSubuser = server.subusers?.some(su => su.email === user.email);
 
-    if (!isOwner && !isSubuser) {
+    if (!isOwner && !isSubuser && !user.admin) {
       return res.status(403).send("You do not have access to this VPS.");
     }
 
@@ -308,6 +296,45 @@ async function requireServerAccess(req, res, next) {
   }
 }
 
+/*
+* Route: GET /server/stats/:containerId
+* Description: Fetch live server stats for a given container from node.
+* Params: containerId
+* Response: JSON stats (CPU, RAM, etc.)
+* Version: v1.0.0
+*/
+router.get("/server/stats/:containerId", requireLogin, requireServerAccess, async (req, res) => {
+  const { containerId } = req.params;
+  const q = req.user;
+  const server = req.server; 
+
+  try {
+    const user = await users.get(q.id);
+    if (!user) {
+      return res.status(403).json({ error: "User not found" });
+    }
+
+    const node = await nodes.get(server.node);
+    if (!node) {
+      return res.status(500).json({ error: "Node not found" });
+    }
+
+    const response = await fetch(
+      buildNodeUrl(node, `/stats/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`)
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Failed to fetch from node" });
+    }
+
+    const data = await response.json(); 
+    res.json(data);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch stats", details: err.message });
+  }
+});
 /*
 * Route: GET /vps/:containerId
 * Description: Render VPS page for a specific container.
@@ -327,7 +354,8 @@ router.get("/vps/:containerId", requireLogin, requireServerAccess, async (req, r
     }
     res.render("vps", { user, server, serverip, name: await getAppName(), addons: addonManager.loadedAddons });
   } catch (err) {
-    logger.error("VPS page error:", err);
+    console.log(err)
+    logger.error("VPS page error:", err || err.mesage || err.stack);
     res.status(500).send("Failed to load VPS page.");
   }
 });

@@ -39,7 +39,11 @@
               </div>
             </div>
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-bold text-white">VPS Instances</h2>
+            <% if (watchingOthers) { %>
+              <h2 class="text-xl font-bold text-white">Watching others VPS</h2>
+              <% } else { %>
+                <h2 class="text-xl font-bold text-white">VPS Instances</h2>
+                <% } %>
 
               <!-- Toggle buttons -->
               <div class="flex gap-2">
@@ -51,14 +55,25 @@
                   class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-gray-300 text-sm font-medium">
                   <i data-lucide="align-start-vertical" class="w-4 h-4"></i>
                 </button>
+                  <% if (user.admin && !watchingOthers) { %>
+                    <a href="/dashboard?admin=seeothers"
+                      class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-gray-100 text-sm font-medium">
+                      <i data-lucide="server" class="w-4 h-4"></i>
+                      View Other Servers
+                    </a>
+                    <% } else if (user.admin && watchingOthers) { %>
+                      <a href="/dashboard"
+                        class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-gray-100 text-sm font-medium">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to My Servers
+                      </a>
+                      <% } %>
               </div>
             </div>
 
-            <!-- Server container -->
-            <!-- Squares container -->
             <div id="squaresView" class="flex flex-wrap gap-6 border border-[#2a2a2a] shadow-2xl p-5 pt-4 rounded-xl">
-              <% if (user.servers && user.servers.length> 0) { %>
-                <% user.servers.forEach(server=> { %>
+              <% if (servers && servers.length> 0) { %>
+                <% servers.forEach(server=> { %>
                   <div
                     class="server-card h-[200px] bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition"
                     data-container-id="<%= server.containerId %>">
@@ -128,7 +143,6 @@
                       <% } %>
             </div>
 
-            <!-- Table container (hidden by default) -->
             <div id="tableView" class="hidden overflow-x-auto border border-[#2a2a2a] shadow-2xl rounded-xl">
               <table class="w-full text-sm text-left text-gray-400">
                 <thead class="bg-neutral-900 text-gray-300 uppercase text-xs">
@@ -142,8 +156,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <% if (user.servers && user.servers.length> 0) { %>
-                    <% user.servers.forEach(server=> { %>
+                  <% if (servers && servers.length> 0) { %>
+                    <% servers.forEach(server=> { %>
                       <tr class="server-card border-t border-[#2a2a2a] hover:bg-neutral-800 transition cursor-pointer"
                         data-container-id="<%= server.containerId %>">
                         <td class="px-4 py-2 font-medium text-white">
