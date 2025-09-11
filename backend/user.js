@@ -17,7 +17,7 @@ const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 require("dotenv").config();
 const Logger = require("../utilities/logger");
-const logger = new Logger({ prefix: "Ploxora-Users-Router", level: "debug" });
+const logger = new Logger({ prefix: "Ploxora-Users-Router", level: "debug", pcolo: "green" });
 const { servers: serversDB, users, nodes, sessions, settings } = require('../utilities/db');
 
 async function requireLogin(req, res, next) {

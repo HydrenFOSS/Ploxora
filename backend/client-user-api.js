@@ -309,5 +309,5 @@ router.post("/clientapi/vps/:containerId/edit-name", CheckClientAPI, async (req,
   }
 });
 
-const ploxora_route = "ClientAPI | Author: ma4z | V3";
+const ploxora_route = "ClientAPI | Author: ma4z | V1";
 module.exports = { router, ploxora_route };
