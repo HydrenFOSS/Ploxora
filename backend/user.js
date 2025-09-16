@@ -716,5 +716,76 @@ router.get("/vps/:containerId/subusers", requireLogin, requireServerAccess, asyn
   }
 });
 
+/*
+* Route: POST /vps/:containerId/attach
+* Description: Request an attach session for a VPS (creates an attachedId).
+* Returns: { attachedId, expiresIn }
+*/
+router.post("/vps/:containerId/attach", requireLogin, requireServerAccess, async (req, res) => {
+  try {
+    const { containerId } = req.params;
+    const server = req.server;
+    const node = await nodes.get(server.node);
+
+    if (!node) return res.status(500).json({ error: "Node not found" });
+
+    const response = await fetch(
+      buildNodeUrl(node, `/vps/container/attach/${containerId}?x-verification-key=${encodeURIComponent(node.token)}`),
+      { method: "POST" }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      return res.status(response.status).json({ error: "Node request failed", details: text });
+    }
+
+    const data = await response.json();
+    res.json({
+      containerId,
+      attachedId: data.attachedId,
+      expiresIn: data.expiresIn,
+      message: "Attach session created successfully"
+    });
+  } catch (err) {
+    logger.error("[Attach] error:", err);
+    res.status(500).json({ error: "Failed to create attach session", details: err.message });
+  }
+});
+
+/*
+* Route: POST /vps/:containerId/attached/:attachedId/:action
+* Description: Interact with an active attach session (logs / execute).
+* Body: { command } for execute
+*/
+// panel route
+router.post("/vps/:containerId/attached/:attachedId/:action", requireLogin, requireServerAccess, async (req, res) => {
+  const { containerId, attachedId, action } = req.params;
+  const server = req.server;
+  const node = await nodes.get(server.node);
+
+  if (!node) return res.status(500).json({ error: "Node not found" });
+
+  const response = await fetch(
+    buildNodeUrl(
+      node,
+      `/vps/container/attached/${attachedId}/${action}?x-verification-key=${encodeURIComponent(node.token)}`
+    ),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body || {})
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    return res.status(response.status).json({ error: "Node request failed", details: text });
+  }
+
+  const data = await response.json();
+  res.json(data);
+});
+
+
 const ploxora_route = "User Pages | Author: ma4z | V1"
 module.exports = { router, ploxora_route };
