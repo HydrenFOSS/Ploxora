@@ -2,19 +2,21 @@
 <html lang="en">
 <%- include('components/head') %>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
 
   <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
 
-    <!-- Sidebar -->
+
     <%- include('components/sidebar.ejs') %>
 
-      <!-- Main Content -->
+
       <div class="flex-1 flex flex-col">
 
-        <!-- Navbar -->
+
         <%- include('components/nav.ejs') %>
 
-          <!-- VPS Dashboard -->
+
           <main class="p-6 flex flex-col space-y-6">
             <%- include('components/vpsnav.ejs') %>
               <div class="flex items-center gap-3 ml-auto">
@@ -37,7 +39,7 @@
 
       </div>
 
-      <!-- VPS Info -->
+
       <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
         <h1 class="text-3xl font-bold text-gray-200">
           <%= server.name || "Unnamed VPS" %>
@@ -65,7 +67,7 @@
                           <% } %>
         </div>
 
-        <!-- Uptime -->
+
         <div class="flex items-center space-x-2 text-sm md:text-base">
           <span class="font-semibold">Uptime:</span>
           <span id="uptime-display" class="px-3 py-1 bg-neutral-900 rounded text-blue-400 font-mono whitespace-nowrap">
@@ -73,7 +75,7 @@
           </span>
         </div>
 
-        <!-- Status -->
+
         <div class="flex items-center space-x-2 text-sm md:text-base">
           <span class="font-semibold">Status:</span>
           <span id="vps-status" class="px-4 py-2 rounded-xl font-semibold text-sm bg-gray-500 text-white">
@@ -81,45 +83,47 @@
           </span>
         </div>
       </div>
-      <!-- Logs + Exec Panel -->
+
       <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
-        <!-- Logs -->
         <div>
           <h3 class="text-lg font-semibold text-gray-200 mb-2">Logs</h3>
-          <div id="logContainer"
-            class="bg-neutral-950 border border-[#2a2a2a] rounded-lg p-3 h-60 overflow-y-auto font-mono text-sm space-y-1">
+          <div id="logContainer" class="bg-neutral-950 border border-[#2a2a2a] rounded-lg p-3">
           </div>
         </div>
 
-        <!-- Exec -->
-        <div class="flex gap-2">
-          <input id="execInput" type="text" placeholder="Type command..."
-            class="flex-1 px-3 py-2 rounded-lg bg-neutral-900 text-gray-200 font-mono text-sm outline-none border border-[#2a2a2a]" />
-          <button id="execBtn"
-            class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Run</button>
-        </div>
+
+        <% if (!server.ssh.includes('https' || 'http' )) { %>
+          <% if (csenabled===true) { %>
+            <div class="flex gap-2">
+              <input id="execInput" type="text" placeholder="Type command..."
+                class="flex-1 px-3 py-2 rounded-lg bg-neutral-900 text-gray-200 font-mono text-sm outline-none border border-[#2a2a2a]" />
+              <button id="execBtn"
+                class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Run</button>
+            </div>
+            <% } %>
+              <% } %>
       </div>
 
-      <!-- Charts -->
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- CPU -->
+
         <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">CPU Usage</h2>
           <canvas id="cpuChart" class="w-full h-64"></canvas>
         </div>
 
-        <!-- RAM -->
+
         <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">RAM Usage</h2>
           <canvas id="ramChart" class="w-full h-64"></canvas>
         </div>
 
-        <!-- Disk -->
+
         <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Disk Usage</h2>
           <canvas id="diskChart" class="w-full h-64"></canvas>
         </div>
-        <!-- Network -->
+
         <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Network Usage</h2>
           <canvas id="networkChart" class="w-full h-64"></canvas>
@@ -133,7 +137,7 @@
         <script>
           const containerId = "<%= server.containerId %>";
 
-          // Chart.js base options
+
           const baseOptions = {
             responsive: true,
             animation: false,
@@ -209,7 +213,7 @@
 
           const labels = Array.from({ length: 20 }, (_, i) => i);
 
-          // Chart datasets
+
           const cpuData = {
             labels,
             datasets: [
@@ -266,7 +270,7 @@
             ],
           };
 
-          // Initialize charts
+
           const cpuChart = new Chart(document.getElementById("cpuChart"), {
             type: "line",
             data: cpuData,
@@ -288,7 +292,7 @@
             options: baseOptions,
           });
 
-// --- Buttons ---
+
 <% if (server.ssh.includes('https')) { %>
 const btnRessh = document.getElementById("btn-ressh");
 <% } %>
@@ -296,101 +300,91 @@ const btnStart = document.getElementById("btn-start");
           const btnStop = document.getElementById("btn-stop");
           const btnRestart = document.getElementById("btn-restart");
 
-          // --- Logs ---
+
           const logContainer = document.getElementById("logContainer");
           const logColors = {
             INFO: "#d4d4d4",
-            DOCKER: "#0000FF",
+            DOCKER: "#0526a8",
             ACTION: "#38bdf8",
             ERROR: "#ef4444",
             SUCCESS: "#10b981",
           };
-         function cleanLine(line) {
+          function cleanLine(line) {
             let stripped = stripAnsiAndOsc(line);
 
-            // Handle carriage returns (\r) by keeping only the last portion
+
             if (stripped.includes("\r")) {
               const parts = stripped.split("\r");
               stripped = parts[parts.length - 1];
             }
 
-            // Remove prompt lines
+
             if (/root@.+:.*#/.test(stripped.trim())) return "root@<%= server.name %>~$ ";
 
             return stripped.trim();
           }
 
-             function stripAnsiAndOsc(str) {
-              return str
-                // Remove ANSI escape codes
-                .replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, "")
-                // Remove OSC (like ]0;... BEL)
-                .replace(/\x1b\][^\x07]*(\x07|\x1b\\)/g, "")
-                // Remove stray control characters
-                .replace(/[\x00-\x1F\x7F]/g, "");
-            }
+          function stripAnsiAndOsc(str) {
+            return str
+
+              .replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, "")
+
+              .replace(/\x1b\][^\x07]*(\x07|\x1b\\)/g, "")
+
+              .replace(/[\x00-\x1F\x7F]/g, "");
+          }
+          const term = new Terminal({
+            theme: {
+              background: '#0a0a0a',
+              foreground: '#e5e7eb',
+              selection: '#5DA5D533',
+              black: '#1E1E1D',
+              brightBlack: '#262625',
+              red: '#E54B4B',
+              green: '#9ECE58',
+              yellow: '#FAED70',
+              blue: '#396FE2',
+              magenta: '#BB80B3',
+              cyan: '#2DDAFD',
+              white: '#d0d0d0',
+              brightBlack: 'rgba(255, 255, 255, 0.2)',
+              brightRed: '#FF5370',
+              brightGreen: '#C3E88D',
+              brightYellow: '#FFCB6B',
+              brightBlue: '#82AAFF',
+              brightMagenta: '#C792EA',
+              brightCyan: '#89DDFF',
+              brightWhite: '#ffffff',
+            },
+            fontFamily: 'Menlo, monospace',
+            fontSize: 13,
+            rows: 14,
+            cols: 80
+          });
+
+          term.open(document.getElementById("logContainer"));
           function addLog(type, message) {
-  const cleanMessage = cleanLine(message);
-  if (!cleanMessage) return; // skip empty/garbage lines
+            const cleanMessage = cleanLine(message);
+            if (!cleanMessage) return;
 
-  // Check if the message has a carriage return (\r)
-  const isProgressLine = message.includes("\r");
+            const styleMap = {
+              INFO: { fg: "\x1b[37m", bg: "\x1b[100m" },   // white on dark gray
+              DOCKER: { fg: "\x1b[97m", bg: "\x1b[44m" },    // white on blue
+              ACTION: { fg: "\x1b[30m", bg: "\x1b[46m" },    // black on cyan
+              ERROR: { fg: "\x1b[97m", bg: "\x1b[41m" },    // white on red
+              SUCCESS: { fg: "\x1b[30m", bg: "\x1b[42m" },    // black on green
+            };
 
-  let line;
-  if (isProgressLine && logContainer.lastChild) {
-    // Update the last line instead of adding a new one
-    line = logContainer.lastChild;
-    line.querySelector("span:last-child").previousSibling.textContent = cleanMessage;
-  } else {
-    line = document.createElement("div");
-    line.classList.add(
-      "flex",
-      "items-center",
-      "gap-2",
-      "hover:bg-neutral-900",
-      "transition",
-      "rounded-md",
-      "px-2", "py-1",
-      "w-full",
-      "font-[Figtree]"
-    );
+            const { fg, bg } = styleMap[type] || { fg: "\x1b[37m", bg: "\x1b[100m" };
 
-    const badge = document.createElement("span");
-    badge.textContent = type;
-    badge.className = "px-2 py-0.5 text-xs font-[Figtree] uppercase rounded";
-    badge.style.color = logColors[type] || "#d4d4d4";
-    badge.style.backgroundColor = hexToAlpha(logColors[type] || "#d4d4d4", 0.1);
+            // Build a "badge" like [ INFO ]
+            const prefix = `${bg}${fg} ${type} \x1b[0m`;
 
-    const text = document.createElement("span");
-    text.textContent = cleanMessage;
+            // Optional: add timestamp
+            const timestamp = new Date().toLocaleTimeString();
 
-    const rightSide = document.createElement("div");
-    rightSide.classList.add("flex", "items-center", "gap-1", "ml-auto");
-
-    const icon = document.createElement("i");
-    icon.setAttribute("data-lucide", "router");
-    icon.className = "w-3 h-3 text-neutral-500";
-
-    const timestamp = document.createElement("span");
-    timestamp.textContent = new Date().toLocaleTimeString();
-    timestamp.className = "text-xs text-gray-500 font-[Figtree]";
-
-    rightSide.appendChild(icon);
-    rightSide.appendChild(timestamp);
-
-    line.appendChild(badge);
-    line.appendChild(text);
-    line.appendChild(rightSide);
-
-    logContainer.appendChild(line);
-
-    if (window.lucide) {
-      lucide.createIcons();
-    }
-  }
-
-  logContainer.scrollTop = logContainer.scrollHeight;
-}
+            term.writeln(`${prefix} \x1b[90m[${timestamp}]\x1b[0m ${cleanMessage}`);
+          }
 
 
 
@@ -401,7 +395,7 @@ const btnStart = document.getElementById("btn-start");
             return `rgba(${r},${g},${b},${alpha})`;
           }
 
-          // --- Button states ---
+
           function updateActionButtons(status) {
             btnStart.disabled = true;
             btnStop.disabled = true;
@@ -429,40 +423,63 @@ const btnStart = document.getElementById("btn-start");
                 showPopup("error", "Connection Failed", "Failed to connect to the Daemon")
                 addLog('ERROR', "Failed to Connect to the daemon is the Node Offline?");
               }
-              // Status
+
               const statusEl = document.getElementById("vps-status");
               let bgClass;
               let statusfromres;
+               <% if (!server.ssh.includes('https')) { %>
               switch (data.status) {
-                case "running":
-                  bgClass = "bg-green-500";
-                  statusfromres = "Running";
-                  break;
-                case "exited":
-                  bgClass = "bg-red-500";
-                  statusfromres = "Stopped";
-                  break;
-                case "node missing":
-                  bgClass = "bg-yellow-500";
-                  statusfromres = "Node Missing";
-                  break;
-                case "error":
-                  bgClass = "bg-orange-500";
-                  statusfromres = "Error";
-                  break;
-                default:
-                  bgClass = "bg-gray-500";
-              }
-              statusEl.textContent = statusfromres || "unknown";
+                  case "running":
+                    bgClass = "bg-green-500";
+                    statusfromres = "Running";
+                    break;
+                  case "exited":
+                    bgClass = "bg-red-500";
+                    statusfromres = "Stopped";
+                    break;
+                  case "node missing":
+                    bgClass = "bg-yellow-500";
+                    statusfromres = "Node Missing";
+                    break;
+                  case "error":
+                    bgClass = "bg-orange-500";
+                    statusfromres = "Error";
+                    break;
+                  default:
+                    bgClass = "bg-gray-500";
+                }
+              <% } else { %>
+                 switch (data.status) {
+                  case "running":
+                    bgClass = "bg-green-500";
+                    statusfromres = "Online";
+                    break;
+                  case "exited":
+                    bgClass = "bg-red-500";
+                    statusfromres = "Offline";
+                    break;
+                  case "node missing":
+                    bgClass = "bg-yellow-500";
+                    statusfromres = "Node Missing";
+                    break;
+                  case "error":
+                    bgClass = "bg-orange-500";
+                    statusfromres = "Error";
+                    break;
+                  default:
+                    bgClass = "bg-gray-500";
+                }
+              <% } %>
+                statusEl.textContent = statusfromres || "unknown";
               statusEl.className = `px-4 py-2 rounded-xl font-semibold text-sm text-white ${bgClass}`;
-              // Uptime
+
               document.getElementById("uptime-display").textContent =
                 data.uptime || "N/A";
 
-              // Buttons
+
               updateActionButtons(data.status);
 
-              // Push chart data
+
               function pushData(chart, values) {
                 if (!Array.isArray(values)) values = [values];
                 values.forEach((val, i) => {
@@ -487,7 +504,7 @@ const btnStart = document.getElementById("btn-start");
           updateVPS();
           setInterval(updateVPS, 2000);
 
-// --- Ressh ---
+
 <% if (server.ssh.includes('https')) { %>
             btnRessh.addEventListener("click", async () => {
               addLog("ACTION", "Fetching SSH session...");
@@ -508,7 +525,7 @@ const btnStart = document.getElementById("btn-start");
             });
 <% } %>
 
-            // --- Start/Stop/Restart ---
+
             async function performAction(action) {
               let actiontorun = action;
               try {
@@ -538,87 +555,87 @@ const btnStart = document.getElementById("btn-start");
           btnStart.addEventListener("click", () => performAction("start"));
           btnStop.addEventListener("click", () => performAction("stop"));
           btnRestart.addEventListener("click", () => performAction("restart"));
+<% if (csenabled === true) { %>
+            let attachedId = null;
+            let logInterval = null;
 
-          let attachedId = null;
-          let logInterval = null;
+            async function attachSession() {
+              const res = await fetch(`/vps/${containerId}/attach`, { method: "POST" });
+              const data = await res.json();
+              attachedId = data.attachedId;
 
-          // Create attach session automatically
-          async function attachSession() {
-            const res = await fetch(`/vps/${containerId}/attach`, { method: "POST" });
-            const data = await res.json();
-            attachedId = data.attachedId;
-
-            if (attachedId) {
-              startLogPolling();
+              if (attachedId) {
+                startLogPolling();
+              }
             }
-          }
-          function startLogPolling() {
-            let pendingLogs = [];
-            let renderInterval;
-            const seenLines = new Set(); // store all lines we've already shown
+            function startLogPolling() {
+              let pendingLogs = [];
+              let renderInterval;
+              const seenLines = new Set();
 
-            logInterval = setInterval(async () => {
-              try {
-                const res = await fetch(`/vps/${containerId}/attached/${attachedId}/logs`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({})
-                });
+              logInterval = setInterval(async () => {
+                try {
+                  const res = await fetch(`/vps/${containerId}/attached/${attachedId}/logs`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({})
+                  });
 
-                if (!res.ok) {
+                  if (!res.ok) {
+                    clearInterval(logInterval);
+                    clearInterval(renderInterval);
+                    return;
+                  }
+
+                  const data = await res.json();
+                  if (data.logs) {
+                    const lines = data.logs.split("\n").filter(l => l.trim() !== "");
+
+                    lines.forEach(line => {
+                      const fixline = cleanLine(line);
+                      if (!seenLines.has(fixline)) {
+                        pendingLogs.push(fixline);
+                        seenLines.add(fixline);
+                      }
+                    });
+                  }
+                } catch (err) {
+                  console.error("Log polling stopped:", err);
                   clearInterval(logInterval);
                   clearInterval(renderInterval);
-                  return;
                 }
+              }, 2000);
 
-                const data = await res.json();
-                if (data.logs) {
-                  const lines = data.logs.split("\n").filter(l => l.trim() !== "");
 
-                  lines.forEach(line => {
-                    const fixline = cleanLine(line);
-                    if (!seenLines.has(fixline)) {
-                      pendingLogs.push(fixline);
-                      seenLines.add(fixline);
-                    }
-                  });
+              renderInterval = setInterval(() => {
+                if (pendingLogs.length > 0) {
+                  const chunk = pendingLogs.splice(0, 5);
+                  chunk.forEach(line => addLog("DOCKER", line));
+
+                  const logContainer = document.getElementById("logContainer");
+                  logContainer.scrollTop = logContainer.scrollHeight;
                 }
-              } catch (err) {
-                console.error("Log polling stopped:", err);
-                clearInterval(logInterval);
-                clearInterval(renderInterval);
-              }
-            }, 2000);
-
-            // Render slowly in chunks
-            renderInterval = setInterval(() => {
-              if (pendingLogs.length > 0) {
-                const chunk = pendingLogs.splice(0, 5); // show 5 at a time
-                chunk.forEach(line => addLog("DOCKER", line));
-
-                const logContainer = document.getElementById("logContainer");
-                logContainer.scrollTop = logContainer.scrollHeight;
-              }
-            }, 200);
-          }
-
-          document.getElementById("execBtn").addEventListener("click", async () => {
-            const cmd = document.getElementById("execInput").value.trim();
-            if (!cmd || !attachedId) return;
-            if (cmd === 'exit') {
-              performAction("stop");
-              document.getElementById("execInput").value = "";
-              return;
+              }, 200);
             }
-            await fetch(`/vps/${containerId}/attached/${attachedId}/execute`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ command: cmd })
+
+            document.getElementById("execBtn").addEventListener("click", async () => {
+              const cmd = document.getElementById("execInput").value.trim();
+              if (!cmd || !attachedId) return;
+              if (cmd === 'exit') {
+                performAction("stop");
+                document.getElementById("execInput").value = "";
+                return;
+              }
+              await fetch(`/vps/${containerId}/attached/${attachedId}/execute`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command: cmd })
+              });
+              document.getElementById("execInput").value = "";
             });
-            document.getElementById("execInput").value = "";
-          });
-          attachSession();
-          lucide.createIcons();
+            attachSession();
+          <% } %>
+            lucide.createIcons();
         </script>
   </body>
 

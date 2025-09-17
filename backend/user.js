@@ -345,6 +345,7 @@ router.get("/vps/:containerId", requireLogin, requireServerAccess, async (req, r
   try {
     const { containerId } = req.params;
     const user = req.user;
+    const isConsoleEnabled = await settings.get("VPSConsoleEnabled");
     const server = req.server;
     let serverip;
     const node = await nodes.get(server.node);
@@ -352,9 +353,8 @@ router.get("/vps/:containerId", requireLogin, requireServerAccess, async (req, r
     if (node) {
       serverip = `ssh root@${node.address} -p ${server.port}`
     }
-    res.render("vps", { user, server, serverip, name: await getAppName(), addons: addonManager.loadedAddons });
+    res.render("vps", { user, server, serverip, name: await getAppName(), addons: addonManager.loadedAddons, csenabled: isConsoleEnabled });
   } catch (err) {
-    console.log(err)
     logger.error("VPS page error:", err || err.mesage || err.stack);
     res.status(500).send("Failed to load VPS page.");
   }

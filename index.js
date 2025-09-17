@@ -91,6 +91,7 @@ app.use((req, res, next) => {
 async function ensureDefaultSettings() {
   const defaultSettings = {
     NAME: process.env.APP_NAME || "Ploxora",
+    VPSConsoleEnabled: false,
     IsLogs: false,
     ifisLogs: "",
     Logo: "",
