@@ -23,7 +23,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const package = require("../package.json")
-const { nodes, servers, settings, users, sessions, nestbits } = require('../utilities/db');
+const { nodes, servers, settings, users, sessions, nestbits, theme } = require('../utilities/db');
 const crypto = require("crypto");
 const addonManager = require("../addons/addon_manager");
 
@@ -1140,5 +1140,125 @@ router.get("/admin/nestbits/export/:id", requireLogin, requireAdmin, async (req,
     res.status(500).json({ success: false, error: "Failed to export NestBit" });
   }
 });
+/*
+* Route: /admin/theme
+* Method: GET
+* Description: List the single theme (auto-create default if none) and show active theme/classes.
+* Version: v1.1.0
+*/
+router.get("/admin/theme", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const allThemes = [];
+    for await (const [id, value] of theme.iterator()) {
+      allThemes.push({ id, ...value });
+    }
+
+    // If there is no theme stored, create a single default theme automatically
+    if (allThemes.length === 0) {
+      const defaultId = "default";
+      const defaultTheme = {
+        id: defaultId,
+        name: "Default",
+        background: "bg-neutral-950",
+        textColor: "text-white",
+        buttonColor: "bg-neutral-800",
+        createdAt: new Date().toISOString(),
+      };
+      await theme.set(defaultId, defaultTheme);
+      allThemes.push({ id: defaultId, ...defaultTheme });
+
+      // ensure settings default values exist
+      await settings.set("ACTIVE_THEME", `${defaultTheme.background} ${defaultTheme.textColor}`);
+      await settings.set("ACTIVE_BUTTON", defaultTheme.buttonColor);
+    }
+
+    // Active theme/classes (fallback to defaults if settings are missing)
+    const activeTheme = await settings.get("ACTIVE_THEME") || "bg-neutral-950 text-white";
+    const activeButton = await settings.get("ACTIVE_BUTTON") || "bg-neutral-800";
+
+    res.render("admin/theme", {
+      name: await getAppName(),
+      user: req.user,
+      themes: allThemes,
+      activeTheme,
+      activeButton,
+      req,
+      addons: addonManager.loadedAddons
+    });
+  } catch (err) {
+    logger.error("Error loading themes:", err);
+    res.status(500).send("Failed to load themes");
+  }
+});
+
+/*
+* Route: /admin/theme/edit/:id
+* Method: POST
+* Description: Edit/update the theme (TailwindCSS format)
+* Body: { name, background, textColor, buttonColor }
+* Params: id
+*/
+router.post("/admin/theme/edit/:id", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, background, textColor, buttonColor } = req.body;
+
+    const existing = await theme.get(id);
+    if (!existing) return res.status(404).send("Theme not found");
+
+    const updatedTheme = {
+      ...existing,
+      name: name || existing.name,
+      background: background || existing.background,
+      textColor: textColor || existing.textColor,
+      buttonColor: buttonColor || existing.buttonColor,
+      updatedAt: new Date().toISOString()
+    };
+
+    await theme.set(id, updatedTheme);
+    await audit.log(req.user, "EDIT_THEME", `Edited theme ${updatedTheme.name} (${id})`);
+
+    // If the edited theme was active before (or there was no active theme), update settings to reflect changes.
+    const prevActive = await settings.get("ACTIVE_THEME");
+    const prevActiveString = `${existing.background} ${existing.textColor}`;
+    if (!prevActive || prevActive === prevActiveString) {
+      const cssClass = `${updatedTheme.background} ${updatedTheme.textColor}`;
+      await settings.set("ACTIVE_THEME", cssClass);
+      await settings.set("ACTIVE_BUTTON", updatedTheme.buttonColor);
+    }
+
+    res.redirect("/admin/theme?msg=THEME_UPDATED");
+  } catch (err) {
+    logger.error("Error editing theme:", err);
+    res.status(500).send("Failed to edit theme");
+  }
+});
+
+/*
+* Route: /admin/theme/set/:id
+* Method: POST
+* Description: Set the theme as active (applied site-wide). Also store active button color.
+* Params: id
+*/
+router.post("/admin/theme/set/:id", requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const selectedTheme = await theme.get(id);
+    if (!selectedTheme) return res.status(404).send("Theme not found");
+
+    // Active CSS includes background + textColor for the body
+    const cssClass = `${selectedTheme.background} ${selectedTheme.textColor}`;
+    await settings.set("ACTIVE_THEME", cssClass);
+    // Store button/display color separately so templates can read it
+    await settings.set("ACTIVE_BUTTON", selectedTheme.buttonColor);
+
+    await audit.log(req.user, "SET_THEME", `Set theme ${selectedTheme.name} (${id}) as active`);
+    res.redirect("/admin/theme?msg=THEME_SET");
+  } catch (err) {
+    logger.error("Error setting theme:", err);
+    res.status(500).send("Failed to set theme");
+  }
+});
+
 const ploxora_route = "Admin | Author: ma4z | V1"
 module.exports = { router,ploxora_route };

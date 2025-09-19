@@ -87,6 +87,25 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(async (req, res, next) => {
+  try {
+    const theme = {
+      background: (await settings.get("ACTIVE_THEME")) || "bg-neutral-950",
+      textColor: (await settings.get("ACTIVE_TEXT")) || "text-gray-300",
+      buttonColor: (await settings.get("ACTIVE_BUTTON")) || "bg-neutral-800"
+    };
+
+    res.locals.theme = theme; // available in all ejs views
+  } catch (err) {
+    console.error("Failed to load theme settings:", err);
+    res.locals.theme = {
+      background: "bg-neutral-950",
+      textColor: "text-gray-300",
+      buttonColor: "bg-neutral-800"
+    };
+  }
+  next();
+});
 // --- Ensure default settings ---
 async function ensureDefaultSettings() {
   const defaultSettings = {

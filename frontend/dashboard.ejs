@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('components/head') %>
 
-  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('components/sidebar.ejs') %>
@@ -17,21 +17,21 @@
             <!-- Overview Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div
-                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                class="<%= theme.buttonColor %>  border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
                 <h3 class="text-sm text-gray-400 mb-2">Your Servers</h3>
                 <p class="text-2xl font-bold text-white">
                   <%= user.servers?.length || 0 %>
                 </p>
               </div>
               <div
-                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                class="<%= theme.buttonColor %>  border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
                 <h3 class="text-sm text-gray-400 mb-2">Account Type</h3>
                 <p class="text-2xl font-bold text-white">
                   <%= user.admin ? "Admin" : "User" %>
                 </p>
               </div>
               <div
-                class="bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
+                class="<%= theme.buttonColor %>  border border-[#2a2a2a] rounded-xl p-6 shadow-lg hover:border-neutral-600 transition">
                 <h3 class="text-sm text-gray-400 mb-2">System Nodes</h3>
                 <p class="text-2xl font-bold text-white">
                   <%= nodes %>
@@ -75,7 +75,7 @@
               <% if (servers && servers.length> 0) { %>
                 <% servers.forEach(server=> { %>
                   <div
-                    class="server-card h-[200px] bg-neutral-950 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition"
+                    class="server-card h-[200px] <%= theme.buttonColor %>  border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-[400px] hover:border-neutral-600 transition"
                     data-container-id="<%= server.containerId %>">
 
                     <!-- content same as before -->
@@ -136,7 +136,7 @@
                   <% }) %>
                     <% } else { %>
                       <div
-                        class="w-full flex flex-col items-center justify-center text-center p-12 border border-[#2a2a2a] rounded-xl bg-neutral-950 shadow-lg">
+                        class="w-full flex flex-col items-center justify-center text-center p-12 border border-[#2a2a2a] rounded-xl <%= theme.buttonColor %>  shadow-lg">
                         <i data-lucide="server" class="w-20 h-20 text-gray-200 mb-4"></i>
                         <p class="text-gray-400 text-lg font-medium">No servers yet</p>
                       </div>

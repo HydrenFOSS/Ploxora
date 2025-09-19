@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('../components/head') %>
 
-  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('../components/admin_sidebar.ejs') %>
@@ -59,7 +59,7 @@
               <% } %>
 
                 <!-- Users Table -->
-                <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+                <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
                   <table class="w-full text-left border-collapse">
                     <thead>
                       <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">

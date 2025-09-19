@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('../components/head') %>
 
-<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
@@ -14,7 +14,7 @@
 
     <!-- Addons Content -->
     <main class="p-6 grid grid-cols-1 gap-6">
-      <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+      <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
         <h1 class="text-2xl font-bold text-white flex items-center gap-2 mb-4">
           <i data-lucide="package" class="w-6 h-6"></i>
           Manage Addons
@@ -26,7 +26,7 @@
           <% } else { %>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <% addons.forEach(addon => { %>
-                <div class="p-4 bg-neutral-950 rounded-xl border border-[#2a2a2a] shadow flex flex-col justify-between">
+                <div class="p-4 <%= theme.buttonColor %> rounded-xl border border-[#2a2a2a] shadow flex flex-col justify-between">
                   <div>
                     <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                       <i data-lucide="puzzle" class="w-5 h-5"></i>

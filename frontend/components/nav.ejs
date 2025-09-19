@@ -1,4 +1,4 @@
-<header class="bg-neutral-950 px-6 py-4 flex items-center justify-between shadow-md relative z-20">
+<header class="<%= theme.background %> px-6 py-4 flex items-center justify-between shadow-md relative z-20">
   <!-- Search Box -->
   <div class="flex-1 max-w-md relative">
     <div class="relative">
@@ -7,7 +7,7 @@
         id="searchInput"
         type="text" 
         placeholder="Search..." 
-        class="w-full pl-10 pr-4 py-2 rounded-xl bg-neutral-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neutral-700"
+        class="w-full pl-10 pr-4 py-2 rounded-xl <%= theme.buttonColor %> <%= theme.textColor %> placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-neutral-700"
         autocomplete="off"
       >
     </div>

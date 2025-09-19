@@ -5,7 +5,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
   <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
 
-  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
 
     <%- include('components/sidebar.ejs') %>
@@ -40,7 +40,7 @@
       </div>
 
 
-      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+      <div class="<%= theme.buttonColor %> p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
         <h1 class="text-3xl font-bold text-gray-200">
           <%= server.name || "Unnamed VPS" %>
         </h1>
@@ -84,10 +84,10 @@
         </div>
       </div>
 
-      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
+      <div class="<%= theme.buttonColor %> p-6 rounded-2xl shadow-lg border border-[#2a2a2a] flex flex-col space-y-4">
         <div>
           <h3 class="text-lg font-semibold text-gray-200 mb-2">Logs</h3>
-          <div id="logContainer" class="bg-neutral-950 border border-[#2a2a2a] rounded-lg p-3">
+          <div id="logContainer" class="<%= theme.buttonColor %> border border-[#2a2a2a] rounded-lg p-3">
           </div>
         </div>
 
@@ -107,24 +107,24 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">CPU Usage</h2>
           <canvas id="cpuChart" class="w-full h-64"></canvas>
         </div>
 
 
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">RAM Usage</h2>
           <canvas id="ramChart" class="w-full h-64"></canvas>
         </div>
 
 
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Disk Usage</h2>
           <canvas id="diskChart" class="w-full h-64"></canvas>
         </div>
 
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
+        <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a]">
           <h2 class="text-xl font-semibold text-gray-200 mb-4">Network Usage</h2>
           <canvas id="networkChart" class="w-full h-64"></canvas>
         </div>

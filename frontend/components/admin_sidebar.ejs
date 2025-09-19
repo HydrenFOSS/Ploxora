@@ -1,5 +1,5 @@
 <div id="loadingOverlay"
-     class="fixed inset-0 bg-neutral-950/80 flex items-center justify-center z-[9999] opacity-100 transition-opacity duration-500">
+     class="fixed inset-0 <%= theme.buttonColor %>/80 flex items-center justify-center z-[9999] opacity-100 transition-opacity duration-500">
   <!-- Spinner SVG -->
   <svg class="inline w-8 h-8 text-gray-200 animate-spin fill-neutral-800" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
      <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
@@ -17,13 +17,13 @@
 
 </style>
 <!-- Mobile toggle button -->
-<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-2xl bg-neutral-900 text-white hover:bg-neutral-800 transition">
+<button id="sidebarToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-2xl bg-neutral-900<%= theme.textColor %> hover:bg-neutral-800 transition">
   <i data-lucide="menu" class="w-6 h-6"></i>
 </button>
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="fixed md:static inset-y-0 left-0 w-64 bg-neutral-950 p-6 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40 border border-neutral-900">
+  class="fixed md:static inset-y-0 left-0 w-64 <%= theme.background %> p-6 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40 border border-neutral-900">
 
   <div class="mb-8 flex justify-center items-center gap-3">
     <img src="/uploads/logo.png" alt="Ploxora Logo" class="h-10 w-auto">
@@ -33,7 +33,7 @@
   <hr class="border-neutral-900 mb-4">
 <div class="relative w-full">
   <button id="userMenuButton" type="button"
-    class="transition flex items-center gap-3 w-full px-4 py-2 text-left rounded-xl bg-[#0d0d0d] hover:bg-neutral-900 text-white">
+    class="transition flex items-center gap-3 w-full px-4 py-2 text-left rounded-xl <%= theme.buttonColor %> hover:bg-neutral-900 text-white">
     <img src="<%= user.profilePicture %>" alt="User" class="rounded-full h-8 w-8 border border-neutral-700">
     <span class="truncate"><%= user.username %></span>
     <i id="userMenuChevron" data-lucide="chevron-right" class="ml-auto w-4 h-4 transition-transform"></i>
@@ -60,36 +60,40 @@
 
   <nav class="space-y-3">
     <% if (user.admin) { %>
-    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="arrow-left" class="w-5 h-5"></i> Go Back
     </a>
 
-    <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/overview" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="table-of-contents" class="w-5 h-5"></i> Overview
     </a>
 
-    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="shield" class="w-5 h-5"></i> Settings
     </a>
+
+     <a href="/admin/theme" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+      <i data-lucide="palette" class="w-5 h-5"></i> Theme
+    </a>
     
-    <a href="/admin/nodes" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/nodes" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="server" class="w-5 h-5"></i> Nodes
     </a>
 
-    <a href="/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="users" class="w-5 h-5"></i> Users
     </a>
 
-    <a href="/admin/servers" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/servers" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="database" class="w-5 h-5"></i> VPS Instances
     </a>
-    <a href="/admin/audit-logs" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/audit-logs" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="logs" class="w-5 h-5"></i> Audit Logs
     </a>
-    <a href="/admin/addons" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+    <a href="/admin/addons" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="puzzle" class="w-5 h-5"></i> Addons
     </a>
-     <a href="/admin/nestbits" class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+     <a href="/admin/nestbits" class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
       <i data-lucide="warehouse" class="w-5 h-5"></i> NestBits
     </a>
 
@@ -102,7 +106,7 @@
         <% a.sidebar.forEach(s => { %>
           <% if (s.for === "admin") { %>
             <a href="<%= s.path %>" 
-               class="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-950 text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
+               class="flex items-center gap-3 px-4 py-2 rounded-xl <%= theme.buttonColor %> text-white hover:bg-netural-950 transition border border-[#2a2a2a] hover:border-neutral-600">
               <i data-lucide="<%= s.icon || 'puzzle' %>" class="w-5 h-5"></i>
               <%= s.text || a.name %>
             </a>

@@ -1,11 +1,12 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <%- include('../components/head') %>
 
-<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('../components/admin_sidebar.ejs') %>
@@ -17,7 +18,7 @@
 
     <!-- Overview Content -->
     <main class="p-10 grid grid-cols-1 gap-6">
-      <div class="bg-neutral-950 rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
+      <div class="<%= theme.buttonColor %>  rounded-xl p-6 shadow-lg border border-[#2a2a2a]">
         <h1 class="text-2xl font-bold text-white flex items-center gap-2 mb-6">
           <i data-lucide="info" class="w-6 h-6"></i>
           Admin Overview
@@ -27,7 +28,7 @@
         <div class="space-y-6">
 
           <!-- Dashboard Information -->
-          <div class="p-6 bg-neutral-950 rounded-xl border border-[#2a2a2a] shadow">
+          <div class="p-6 <%= theme.buttonColor %>  rounded-xl border border-[#2a2a2a] shadow">
             <h2 class="text-lg font-semibold text-white">Dashboard Information</h2>
             <p class="text-gray-400 mt-2">This dashboard was created by <span class="text-green-400 font-bold">ma4z</span>.</p>
             <p class="text-gray-400">Version: <span class="font-mono"><%= version %></span></p>
@@ -36,13 +37,13 @@
           </div>
 
           <!-- Update Check -->
-          <div id="update-check" class="p-6 bg-neutral-950 rounded-xl border border-[#2a2a2a] shadow">
+          <div id="update-check" class="p-6 <%= theme.buttonColor %>  rounded-xl border border-[#2a2a2a] shadow">
             <h2 class="text-lg font-semibold text-white">Update Check</h2>
             <p class="text-gray-400 mt-2" id="update-status">Checking for updates...</p>
           </div>
 
           <!-- Credits -->
-          <div class="p-6 bg-neutral-950 rounded-xl border border-[#2a2a2a] shadow">
+          <div class="p-6 <%= theme.buttonColor %>  rounded-xl border border-[#2a2a2a] shadow">
             <h2 class="text-lg font-semibold text-white">Credits</h2>
             <ul class="list-disc list-inside text-gray-400 mt-2 space-y-1">
               <li>Made with ❤️ by <span class="text-green-400">ma4z</span></li>
@@ -53,7 +54,7 @@
           </div>
 
           <!-- Resources -->
-          <div class="p-6 bg-neutral-950 rounded-xl border border-[#2a2a2a] shadow">
+          <div class="p-6 <%= theme.buttonColor %>  rounded-xl border border-[#2a2a2a] shadow">
             <h2 class="text-lg font-semibold text-white">Resources</h2>
             <div class="mt-3 flex flex-wrap gap-3">
               <a href="https://tailwindcss.com" target="_blank"
@@ -113,3 +114,4 @@
 
 </body>
 </html>
+

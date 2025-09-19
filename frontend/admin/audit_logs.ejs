@@ -1,5 +1,5 @@
 <%- include('../components/head') %>
-<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
   <%- include('../components/admin_sidebar.ejs') %>
 
@@ -10,7 +10,7 @@
       <section>
         <h2 class="text-2xl font-semibold text-white tracking-wide mb-4">Audit Logs</h2>
 
-        <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+        <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
@@ -23,7 +23,7 @@
             <tbody class="divide-y divide-neutral-800 text-gray-400">
               <% if (logs && logs.length > 0) { %>
                 <% logs.forEach(log => { %>
-                  <tr class="hover:bg-neutral-950 transition">
+                  <tr class="hover:<%= theme.buttonColor %> transition">
                     <td class="px-6 py-3 text-gray-300"><%= new Date(log.timestamp).toLocaleString() %></td>
                     <td class="px-6 py-3 text-gray-300"><%= log.admin || "-" %></td>
                     <td class="px-6 py-3 text-gray-300"><%= log.action || "-" %></td>

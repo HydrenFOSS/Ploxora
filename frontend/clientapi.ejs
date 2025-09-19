@@ -2,7 +2,7 @@
 <html lang="en">
 <%- include('components/head') %>
 
-<body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+<body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('components/sidebar.ejs') %>
@@ -21,7 +21,7 @@
 
       <!-- Create API Key -->
       <div class="mb-6 flex justify-center text-center">
-        <form id="createKeyForm" class="flex gap-4 items-center bg-neutral-900 border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-45 max-w-2xl">
+        <form id="createKeyForm" class="flex gap-4 items-center <%= theme.buttonColor %>  border border-[#2a2a2a] rounded-xl p-6 shadow-lg w-45 max-w-2xl">
           <button 
             type="submit"
             class="bg-green-600 hover:bg-green-500 text-white font-semibold px-6 py-2 rounded-lg transition shadow"
@@ -35,7 +35,7 @@
       <div class="grid grid-cols-1 gap-4 max-w-4xl mx-auto">
         <% if (apikeys && apikeys.length > 0) { %>
           <% apikeys.forEach(key => { %>
-            <div class="bg-neutral-900 border border-[#2a2a2a] rounded-xl p-6 shadow-lg flex justify-between items-center">
+            <div class="<%= theme.buttonColor %> border border-[#2a2a2a] rounded-xl p-6 shadow-lg flex justify-between items-center">
               <div>
                 <h3 class="text-lg font-semibold text-white"><%= key.name %></h3>
                 <p class="text-sm text-gray-400">Key: <span class="transition blur-sm hover:blur-none text-gray-200 font-mono"><%= key.key %></span></p>

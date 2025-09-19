@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('../components/head') %>
-  <body class="bg-neutral-950 text-gray-300 font-[Figtree] min-h-screen flex">
+  <body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
     <!-- Sidebar -->
     <%- include('../components/admin_sidebar.ejs') %>
@@ -60,7 +60,7 @@
           <% } %>
 
           <!-- VPS Table -->
-          <div class="bg-neutral-950 rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
+          <div class="<%= theme.buttonColor %> rounded-2xl p-6 shadow-lg border border-[#2a2a2a] overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-neutral-900 text-gray-300 text-sm uppercase tracking-wide">
@@ -75,7 +75,7 @@
               <tbody class="divide-y divide-neutral-800 text-gray-400">
                 <% if (servers && servers.length > 0) { %>
                   <% servers.forEach((server, index)=> { %>
-                    <tr class="hover:bg-neutral-950 transition">
+                    <tr class="hover:<%= theme.buttonColor %> transition">
                       <td class="px-6 py-3 font-medium text-gray-200"><%= server.name || "Unnamed server" %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.ssh ? server.ssh.replace(/^ssh session:\s*/i, '') : "N/A") %></td>
                       <td class="px-6 py-3 text-gray-300"><%= (server.containerId ? server.containerId.substring(0, 12) : "N/A") %></td>
@@ -105,7 +105,7 @@
 
         <!-- Create Server Modal -->
         <section id="createServerModal" class="hidden">
-          <div class="bg-neutral-950 p-6 rounded-2xl shadow-2xl w-full border border-[#2a2a2a]">
+          <div class="<%= theme.buttonColor %> p-6 rounded-2xl shadow-2xl w-full border border-[#2a2a2a]">
             <h2 class="text-xl font-semibold text-gray-200 mb-4">Create New VPS</h2>
 
             <form id="createServerForm" action="/admin/servers/create" method="POST" class="space-y-4">
@@ -113,25 +113,25 @@
               <div>
                 <label class="block text-gray-300 mb-1">VPS Name</label>
                 <input type="text" name="name" required placeholder="My Cool VPS" oninput="this.value = this.value.replace(/\s/g, '')"
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">GB</label>
                 <input type="text" name="gb" required value="2G"
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
 
               <div>
                 <label class="block text-gray-300 mb-1">Cores</label>
                 <input type="number" name="cores" required value="1"
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
               </div>
               <!-- User Select -->
               <div>
                 <label class="block text-gray-300 mb-1">Assign User</label>
                 <select name="userId" required
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <% users.forEach(u=> { %>
                     <option value="<%= u.id %>"><%= u.username || u.email || u.id %></option>
                   <% }) %>
@@ -142,7 +142,7 @@
               <div>
                 <label class="block text-gray-300 mb-1">Assign Node</label>
                 <select id="nodeSelect" name="nodeId" required
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <option value="">-- Select Node --</option>
                   <% nodes.forEach(n=> { %>
                     <option value="<%= n.id %>"><%= n.name || n.address || n.id %></option>
@@ -152,7 +152,7 @@
                <div>
                 <label class="block text-gray-300 mb-1">Assign NestBit</label>
                 <select id="nestbitSelect" name="nestbitId" required
-                  class="w-full p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="w-full p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <option value="">-- Select NestBit --</option>
                   <% nestbits.forEach(nb=> { %>
                     <option value="<%= nb.id %>"><%= nb.name %></option>
@@ -162,7 +162,7 @@
               <div>
                 <label class="block text-gray-300 mb-1">Assign Allocation (USED FOR SSH ONLY!)</label>
                 <select id="allocationSelect" name="allocationId" required disabled
-                 class="w-full overflow-y-auto p-2 rounded-lg bg-neutral-950 border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                 class="w-full overflow-y-auto p-2 rounded-lg <%= theme.buttonColor %> border border-[#333] text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
                   <option value="">-- Select Node First --</option>
                 </select>
               </div>

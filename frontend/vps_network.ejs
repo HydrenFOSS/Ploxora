@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('components/head') %>
-<body class="bg-neutral-950 text-gray-100 font-[Figtree] min-h-screen flex">
+<body class="<%= theme.background %> <%= theme.textColor %> font-[Figtree] min-h-screen flex">
 
   <!-- Sidebar -->
   <%- include('components/sidebar.ejs') %>
@@ -17,7 +17,7 @@
       <%- include('components/vpsnav.ejs') %>
     </div>
           <!-- Network Allocation -->
-      <div class="bg-neutral-950 p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
+      <div class="<%= theme.buttonColor %> p-6 rounded-2xl shadow-lg border border-[#2a2a2a]">
         <h1 class="text-2xl font-bold text-gray-200 mb-4">Network Allocation</h1>
 
         <% if (server.allocation) { %>
