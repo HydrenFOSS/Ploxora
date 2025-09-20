@@ -40,6 +40,6 @@
     "passport-discord": "^0.1.4",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
-    "uuid": "^11.1.0"
+    "uuid": "11.1.0"
   }
 }
