@@ -92,7 +92,7 @@ app.use(async (req, res, next) => {
     const theme = {
       background: (await settings.get("ACTIVE_THEME")) || "bg-neutral-950",
       textColor: (await settings.get("ACTIVE_TEXT")) || "text-gray-300",
-      buttonColor: (await settings.get("ACTIVE_BUTTON")) || "bg-neutral-800"
+      buttonColor: (await settings.get("ACTIVE_BUTTON")) || "bg-neutral-950"
     };
 
     res.locals.theme = theme; // available in all ejs views
